@@ -1,0 +1,20 @@
+services:
+  db:
+    container_name: savya-app
+    image: postgres:17-alpine
+    restart: unless-stopped
+    ports:
+      - 5430:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: savyaDB
+    volumes:
+      # Volumen administrado por Docker: datos persistentes
+      - postgres_data_savya:/var/lib/postgresql/data
+      # Bind mount: scripts SQL del proyecto
+      # - ./postgres/init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  postgres_data_savya:
+    driver: local
