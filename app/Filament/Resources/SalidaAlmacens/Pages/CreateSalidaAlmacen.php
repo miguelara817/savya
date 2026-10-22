@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Filament\Resources\SalidaAlmacens\Pages;
+
+use App\Filament\Resources\SalidaAlmacens\SalidaAlmacenResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateSalidaAlmacen extends CreateRecord
+{
+    protected static string $resource = SalidaAlmacenResource::class;
+}
