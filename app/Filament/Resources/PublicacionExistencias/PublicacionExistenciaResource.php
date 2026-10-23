@@ -53,6 +53,7 @@ class PublicacionExistenciaResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Datos de la publicación')
                     ->columns(2)
@@ -64,7 +65,7 @@ class PublicacionExistenciaResource extends Resource
                             ->dehydrated()
                             ->maxLength(30),
                         DateTimePicker::make('fecha_publicacion')
-                            ->label('Fecha de publicación')
+                            ->label('Fecha de ingreso')
                             ->default(now())
                             ->required(),
                         Select::make('responsable_user_id')
@@ -84,10 +85,10 @@ class PublicacionExistenciaResource extends Resource
                             ->columnSpanFull(),
                     ]),
                 Section::make('Existencias')
-                    ->description('Fotografía histórica. Estas líneas no alteran el stock operativo.')
+                    // ->description('Fotografía histórica. Estas líneas no alteran el stock operativo.')
                     ->schema([
                         Repeater::make('existencias')
-                            ->label('Líneas de existencias')
+                            // ->label('Líneas de existencias')
                             ->relationship()
                             ->columns(4)
                             ->minItems(1)
@@ -145,7 +146,7 @@ class PublicacionExistenciaResource extends Resource
                     ->badge()
                     ->sortable(),
                 TextColumn::make('existencias_count')
-                    ->label('Líneas')
+                    ->label('Items')
                     ->counts('existencias')
                     ->numeric(),
                 TextColumn::make('publicada_en')
@@ -212,15 +213,16 @@ class PublicacionExistenciaResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('fecha_publicacion', 'desc');
     }
 
     public static function getPages(): array
     {
         return [
             'index' => ListPublicacionExistencias::route('/'),
-            'create' => CreatePublicacionExistencia::route('/create'),
-            'edit' => EditPublicacionExistencia::route('/{record}/edit'),
+            // 'create' => CreatePublicacionExistencia::route('/create'),
+            // 'edit' => EditPublicacionExistencia::route('/{record}/edit'),
         ];
     }
 

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('publicaciones_existencias', function (Blueprint $table) {
             $table->id('publicacion_id');
             $table->string('numero', 30)->unique();
-            $table->timestamp('fecha_publicacion');
+            $table->timestamp('fecha_ingreso');
             $table->foreignId('responsable_user_id')
                 ->nullable()
                 ->constrained('users')
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 
-            $table->index('fecha_publicacion');
+            $table->index('fecha_ingreso');
             $table->index('estado');
         });
 
