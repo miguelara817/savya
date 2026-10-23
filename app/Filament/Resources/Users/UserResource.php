@@ -52,8 +52,8 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
-                DateTimePicker::make('email_verified_at')
-                    ->label('Correo verificado en'),
+                // DateTimePicker::make('email_verified_at')
+                //     ->label('Correo verificado en'),
                 TextInput::make('password')
                     ->label('Contraseña')
                     ->password()
@@ -97,11 +97,11 @@ class UserResource extends Resource
                 TextColumn::make('roles.name')
                     ->label('Roles')
                     ->badge(),
-                TextColumn::make('email_verified_at')
-                    ->label('Correo verificado en')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('email_verified_at')
+                //     ->label('Correo verificado en')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
@@ -135,8 +135,8 @@ class UserResource extends Resource
     {
         return [
             'index' => ListUsers::route('/'),
-            'create' => CreateUser::route('/create'),
-            'edit' => EditUser::route('/{record}/edit'),
+            // 'create' => CreateUser::route('/create'),
+            // 'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 }

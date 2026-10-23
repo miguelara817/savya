@@ -158,8 +158,8 @@ class PersonaResource extends Resource
     {
         return [
             'index' => ListPersonas::route('/'),
-            'create' => CreatePersona::route('/create'),
-            'edit' => EditPersona::route('/{record}/edit'),
+            // 'create' => CreatePersona::route('/create'),
+            // 'edit' => EditPersona::route('/{record}/edit'),
         ];
     }
 

@@ -10,6 +10,7 @@ use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -55,15 +56,17 @@ class PublicacionExistenciaResource extends Resource
                 Select::make('responsable_user_id')
                     ->label('Responsable')
                     ->relationship('responsable', 'name')
+                    ->default(fn (): ?int => Filament::auth()->id())
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disabled()->dehydrated(),
                 TextInput::make('estado')
                     ->label('Estado')
                     ->required()
                     ->default('BORRADOR')
                     ->maxLength(20),
-                DateTimePicker::make('publicada_en')
-                    ->label('Publicada en'),
+                // DateTimePicker::make('publicada_en')
+                //     ->label('Publicada en'),
                 Textarea::make('observaciones')
                     ->label('Observaciones')
                     ->columnSpanFull(),
@@ -137,8 +140,8 @@ class PublicacionExistenciaResource extends Resource
     {
         return [
             'index' => ListPublicacionExistencias::route('/'),
-            'create' => CreatePublicacionExistencia::route('/create'),
-            'edit' => EditPublicacionExistencia::route('/{record}/edit'),
+            // 'create' => CreatePublicacionExistencia::route('/create'),
+            // 'edit' => EditPublicacionExistencia::route('/{record}/edit'),
         ];
     }
 }

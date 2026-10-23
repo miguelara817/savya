@@ -127,8 +127,8 @@ class ExistenciaResource extends Resource
     {
         return [
             'index' => ListExistencias::route('/'),
-            'create' => CreateExistencia::route('/create'),
-            'edit' => EditExistencia::route('/{record}/edit'),
+            // 'create' => CreateExistencia::route('/create'),
+            // 'edit' => EditExistencia::route('/{record}/edit'),
         ];
     }
 }

@@ -123,8 +123,8 @@ class AlmacenResource extends Resource
     {
         return [
             'index' => ListAlmacens::route('/'),
-            'create' => CreateAlmacen::route('/create'),
-            'edit' => EditAlmacen::route('/{record}/edit'),
+            // 'create' => CreateAlmacen::route('/create'),
+            // 'edit' => EditAlmacen::route('/{record}/edit'),
         ];
     }
 
