@@ -64,13 +64,22 @@ class ProductoResource extends Resource
                     ->label('Código')
                     ->maxLength(50)
                     ->unique(ignoreRecord: true),
+                TextInput::make('presentacion')
+                    ->label('Presentación')
+                    ->maxLength(50),
                 TextInput::make('unidad_medida')
                     ->label('Unidad de medida')
                     ->required()
                     ->default('unidad')
                     ->maxLength(30),
-                Textarea::make('descripcion')
-                    ->label('Descripción')
+                TextInput::make('marca')
+                    ->label('Marca')
+                    ->maxLength(50),
+                TextInput::make('proveedor')
+                    ->label('Proveedor')
+                    ->maxLength(50),
+                Textarea::make('caracteristicas')
+                    ->label('Características')
                     ->columnSpanFull(),
                 Toggle::make('is_active')
                     ->label('Activo')

@@ -5,8 +5,10 @@ namespace App\Filament\Resources\PersonaAutorizadas;
 use App\Filament\Resources\PersonaAutorizadas\Pages\CreatePersonaAutorizada;
 use App\Filament\Resources\PersonaAutorizadas\Pages\EditPersonaAutorizada;
 use App\Filament\Resources\PersonaAutorizadas\Pages\ListPersonaAutorizadas;
+use App\Mail\CredentialsMail;
 use App\Models\PersonaAutorizada;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -18,6 +20,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class PersonaAutorizadaResource extends Resource
 {
@@ -87,16 +90,16 @@ class PersonaAutorizadaResource extends Resource
                 TextColumn::make('telefono')
                     ->label('Teléfono')
                     ->toggleable(),
-                IconColumn::make('usado')
-                    ->label('Usado')
-                    ->boolean(),
+                // IconColumn::make('usado')
+                //     ->label('Usado')
+                //     ->boolean(),
                 TextColumn::make('usuario.name')
                     ->label('Usuario creado')
                     ->placeholder('—'),
-                TextColumn::make('usado_en')
-                    ->label('Usado el')
-                    ->dateTime()
-                    ->toggleable(),
+                // TextColumn::make('usado_en')
+                //     ->label('Usado el')
+                //     ->dateTime()
+                //     ->toggleable(),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
@@ -105,6 +108,31 @@ class PersonaAutorizadaResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                Action::make('sendCredentials')
+                    ->label('Enviar credenciales')
+                    ->icon('heroicon-o-envelope')
+                    ->color('success')
+                    ->form([
+                        TextInput::make('username')
+                            ->label('Usuario')
+                            ->required(),
+
+                        TextInput::make('password')
+                            ->label('Contraseña')
+                            ->password()
+                            ->revealable()
+                            ->required(),
+                    ])
+                    ->modalHeading('Enviar credenciales')
+                    ->modalSubmitActionLabel('Enviar')
+                    ->action(function ($record, array $data): void {
+                        Mail::to($record->email)->send(
+                            new CredentialsMail(
+                                username: $data['username'],
+                                password: $data['password'],
+                            )
+                        );
+                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

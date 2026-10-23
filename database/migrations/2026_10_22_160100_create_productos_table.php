@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('slug', 200)->nullable()->unique();
             $table->string('codigo', 50)->nullable()->unique();
             $table->string('marca', 50)->nullable();
-            $table->string('modelo', 50)->nullable();
+            $table->string('proveedor', 50)->nullable();
             $table->string('presentacion', 50)->nullable();
             $table->text('caracteristicas')->nullable();
             $table->string('unidad_medida', 30)->default('unidad');
