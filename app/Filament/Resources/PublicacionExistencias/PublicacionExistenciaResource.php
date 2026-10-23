@@ -64,7 +64,7 @@ class PublicacionExistenciaResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->maxLength(30),
-                        DateTimePicker::make('fecha_publicacion')
+                        DateTimePicker::make('fecha_ingreso')
                             ->label('Fecha de ingreso')
                             ->default(now())
                             ->required(),
@@ -88,11 +88,11 @@ class PublicacionExistenciaResource extends Resource
                     // ->description('Fotografía histórica. Estas líneas no alteran el stock operativo.')
                     ->schema([
                         Repeater::make('existencias')
-                            // ->label('Líneas de existencias')
+                            ->label('Items de existencias')
                             ->relationship()
                             ->columns(4)
                             ->minItems(1)
-                            ->defaultItems(1)
+                            ->defaultItems(0)
                             ->schema([
                                 Select::make('producto_id')
                                     ->label('Producto')
@@ -134,8 +134,8 @@ class PublicacionExistenciaResource extends Resource
                     ->label('Número')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('fecha_publicacion')
-                    ->label('Fecha de publicación')
+                TextColumn::make('fecha_ingreso')
+                    ->label('Fecha de ingreso')
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('responsable.name')
@@ -214,7 +214,7 @@ class PublicacionExistenciaResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('fecha_publicacion', 'desc');
+            ->defaultSort('fecha_ingreso', 'desc');
     }
 
     public static function getPages(): array

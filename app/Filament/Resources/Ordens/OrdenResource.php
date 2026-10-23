@@ -70,6 +70,7 @@ class OrdenResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Identificación')
                     ->columns(2)
@@ -80,12 +81,12 @@ class OrdenResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->maxLength(30),
-                        TextInput::make('codigo_orden')
-                            ->label('Código UUID')
-                            ->default(fn (): string => (string) Str::uuid())
-                            ->disabled()
-                            ->dehydrated()
-                            ->maxLength(36),
+                        // TextInput::make('codigo_orden')
+                        //     ->label('Código UUID')
+                        //     ->default(fn (): string => (string) Str::uuid())
+                        //     ->disabled()
+                        //     ->dehydrated()
+                        //     ->maxLength(36),
                         Select::make('persona_id')
                             ->label('Cliente')
                             ->relationship('persona', 'nombre')
@@ -484,9 +485,9 @@ class OrdenResource extends Resource
     {
         return [
             'index' => ListOrdens::route('/'),
-            'create' => CreateOrden::route('/create'),
-            'view' => ViewOrden::route('/{record}'),
-            'edit' => EditOrden::route('/{record}/edit'),
+            // 'create' => CreateOrden::route('/create'),
+            // 'view' => ViewOrden::route('/{record}'),
+            // 'edit' => EditOrden::route('/{record}/edit'),
         ];
     }
 

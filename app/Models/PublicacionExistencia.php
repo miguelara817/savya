@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'numero',
-    'fecha_publicacion',
+    'fecha_ingreso',
     'responsable_user_id',
     'estado',
     'observaciones',
@@ -33,7 +33,7 @@ class PublicacionExistencia extends Model
     protected function casts(): array
     {
         return [
-            'fecha_publicacion' => 'datetime',
+            'fecha_ingreso' => 'datetime',
             'publicada_en' => 'datetime',
         ];
     }

@@ -64,10 +64,10 @@ class PersonaAutorizadaResource extends Resource
                 TextInput::make('telefono')
                     ->label('Teléfono')
                     ->maxLength(30),
-                Toggle::make('usado')
-                    ->label('Ya utilizado')
-                    ->disabled()
-                    ->dehydrated(false),
+                // Toggle::make('usado')
+                //     ->label('Ya utilizado')
+                //     ->disabled()
+                //     ->dehydrated(false),
             ]);
     }
 
