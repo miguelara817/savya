@@ -72,7 +72,7 @@ class OrdenResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Identificación')
+                Section::make('')
                     ->columns(2)
                     ->schema([
                         TextInput::make('numero')
@@ -90,6 +90,7 @@ class OrdenResource extends Resource
                         Select::make('persona_id')
                             ->label('Cliente')
                             ->relationship('persona', 'nombre')
+                            ->default(fn (): ?int => Filament::auth()->id())
                             ->searchable()
                             ->preload(),
                         TextInput::make('razon_social')
@@ -135,19 +136,26 @@ class OrdenResource extends Resource
                             ->columnSpanFull(),
                     ]),
                 Section::make('Productos solicitados')
-                    ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
+                    // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
                     ->schema([
                         Repeater::make('productos')
-                            ->label('Líneas de la orden')
+                            ->label('Productos')
                             ->relationship()
                             ->columns(4)
                             ->minItems(1)
-                            ->defaultItems(1)
+                            ->defaultItems(0)
                             ->schema([
                                 Select::make('existencia_id')
                                     ->label('Existencia publicada')
                                     ->options(fn (): array => Existencia::query()
                                         ->with(['producto', 'almacen', 'publicacion'])
+                                        ->whereHas('publicacion', fn ($query) => $query
+                                            ->where('estado', 'PUBLICADA')
+                                            ->where('publicada_en', function ($subquery) {
+                                                $subquery->from('publicaciones_existencias')
+                                                    ->selectRaw('MAX(publicada_en)');
+                                            })
+                                        )
                                         ->orderByDesc('existencia_id')
                                         ->get()
                                         ->mapWithKeys(fn (Existencia $existencia): array => [
@@ -211,22 +219,22 @@ class OrdenResource extends Resource
                                     ->required(),
                             ]),
                     ]),
-                Section::make('Firma del cliente')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('firma_cliente_nombre')
-                            ->label('Nombre del firmante')
-                            ->maxLength(200),
-                        TextInput::make('firma_cliente_documento')
-                            ->label('Documento del firmante')
-                            ->maxLength(50),
-                        FileUpload::make('firma_cliente_archivo')
-                            ->label('Archivo de firma')
-                            ->directory('firmas/ordenes')
-                            ->columnSpanFull(),
-                        DateTimePicker::make('firmado_en')
-                            ->label('Firmado en'),
-                    ]),
+                // Section::make('Firma del cliente')
+                //     ->columns(2)
+                //     ->schema([
+                //         TextInput::make('firma_cliente_nombre')
+                //             ->label('Nombre del firmante')
+                //             ->maxLength(200),
+                //         TextInput::make('firma_cliente_documento')
+                //             ->label('Documento del firmante')
+                //             ->maxLength(50),
+                //         FileUpload::make('firma_cliente_archivo')
+                //             ->label('Archivo de firma')
+                //             ->directory('firmas/ordenes')
+                //             ->columnSpanFull(),
+                //         DateTimePicker::make('firmado_en')
+                //             ->label('Firmado en'),
+                //     ]),
             ]);
     }
 
@@ -485,9 +493,9 @@ class OrdenResource extends Resource
     {
         return [
             'index' => ListOrdens::route('/'),
-            // 'create' => CreateOrden::route('/create'),
-            // 'view' => ViewOrden::route('/{record}'),
-            // 'edit' => EditOrden::route('/{record}/edit'),
+            'create' => CreateOrden::route('/create'),
+            'view' => ViewOrden::route('/{record}'),
+            'edit' => EditOrden::route('/{record}/edit'),
         ];
     }
 

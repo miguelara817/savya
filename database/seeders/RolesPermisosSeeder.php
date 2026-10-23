@@ -58,6 +58,9 @@ class RolesPermisosSeeder extends Seeder
                 'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
                 'ViewAny:Producto', 'View:Producto', 'ViewAny:Almacen', 'View:Almacen',
             ],
+            'cliente' => [
+                'View:Orden', 'Create:Orden',
+            ],
             'operador_ordenes' => [
                 'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden',
                 'EnviarAprobacion:Orden', 'Cancelar:Orden',

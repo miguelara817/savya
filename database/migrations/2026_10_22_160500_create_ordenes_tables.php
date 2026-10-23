@@ -36,10 +36,10 @@ return new class extends Migration
             $table->timestamp('fecha_efectivizacion')->nullable();
             $table->text('observaciones')->nullable();
 
-            $table->string('firma_cliente_nombre', 200)->nullable();
-            $table->string('firma_cliente_documento', 50)->nullable();
-            $table->string('firma_cliente_archivo', 500)->nullable();
-            $table->timestamp('firmado_en')->nullable();
+            // $table->string('firma_cliente_nombre', 200)->nullable();
+            // $table->string('firma_cliente_documento', 50)->nullable();
+            // $table->string('firma_cliente_archivo', 500)->nullable();
+            // $table->timestamp('firmado_en')->nullable();
 
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();

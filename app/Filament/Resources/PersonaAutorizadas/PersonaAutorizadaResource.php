@@ -5,22 +5,21 @@ namespace App\Filament\Resources\PersonaAutorizadas;
 use App\Filament\Resources\PersonaAutorizadas\Pages\CreatePersonaAutorizada;
 use App\Filament\Resources\PersonaAutorizadas\Pages\EditPersonaAutorizada;
 use App\Filament\Resources\PersonaAutorizadas\Pages\ListPersonaAutorizadas;
-use App\Mail\CredentialsMail;
 use App\Models\PersonaAutorizada;
+use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 
 class PersonaAutorizadaResource extends Resource
 {
@@ -64,10 +63,6 @@ class PersonaAutorizadaResource extends Resource
                 TextInput::make('telefono')
                     ->label('Teléfono')
                     ->maxLength(30),
-                // Toggle::make('usado')
-                //     ->label('Ya utilizado')
-                //     ->disabled()
-                //     ->dehydrated(false),
             ]);
     }
 
@@ -90,16 +85,9 @@ class PersonaAutorizadaResource extends Resource
                 TextColumn::make('telefono')
                     ->label('Teléfono')
                     ->toggleable(),
-                // IconColumn::make('usado')
-                //     ->label('Usado')
-                //     ->boolean(),
                 TextColumn::make('usuario.name')
                     ->label('Usuario creado')
                     ->placeholder('—'),
-                // TextColumn::make('usado_en')
-                //     ->label('Usado el')
-                //     ->dateTime()
-                //     ->toggleable(),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
@@ -114,24 +102,39 @@ class PersonaAutorizadaResource extends Resource
                     ->color('success')
                     ->form([
                         TextInput::make('username')
-                            ->label('Usuario')
-                            ->required(),
-
+                            ->label('Usuario / Correo')
+                            ->required()
+                            ->default(fn (PersonaAutorizada $record): string => $record->correo),
                         TextInput::make('password')
                             ->label('Contraseña')
                             ->password()
                             ->revealable()
-                            ->required(),
+                            ->required()
+                            ->minLength(6),
                     ])
                     ->modalHeading('Enviar credenciales')
                     ->modalSubmitActionLabel('Enviar')
-                    ->action(function ($record, array $data): void {
-                        Mail::to($record->email)->send(
-                            new CredentialsMail(
-                                username: $data['username'],
-                                password: $data['password'],
-                            )
-                        );
+                    ->action(function (PersonaAutorizada $record, array $data): void {
+                        $usuario = User::query()->firstOrNew(['email' => $record->correo]);
+
+                        $usuario->name = $usuario->name ?: trim($record->nombre.' '.$record->apellido);
+                        $usuario->email = $data['username'] ?: $record->correo;
+                        $usuario->password = Hash::make($data['password']);
+                        $usuario->save();
+
+                        if (method_exists($usuario, 'assignRole')) {
+                            $usuario->assignRole('cliente');
+                        }
+
+                        $record->update([
+                            'user_id' => $usuario->id,
+                        ]);
+
+                        Notification::make()
+                            ->title('Credenciales creadas/actualizadas')
+                            ->body('Se creó o actualizó el usuario con rol Cliente.')
+                            ->success()
+                            ->send();
                     }),
             ])
             ->bulkActions([
