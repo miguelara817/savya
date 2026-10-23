@@ -29,12 +29,14 @@ class OrdenPersonaPolicy
 
     public function update(AuthUser $authUser, OrdenPersona $ordenPersona): bool
     {
-        return $authUser->can('Update:OrdenPersona');
+        return $authUser->can('Update:OrdenPersona')
+            && (bool) $ordenPersona->orden?->esEditable();
     }
 
     public function delete(AuthUser $authUser, OrdenPersona $ordenPersona): bool
     {
-        return $authUser->can('Delete:OrdenPersona');
+        return $authUser->can('Delete:OrdenPersona')
+            && (bool) $ordenPersona->orden?->esEditable();
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +51,8 @@ class OrdenPersonaPolicy
 
     public function forceDelete(AuthUser $authUser, OrdenPersona $ordenPersona): bool
     {
-        return $authUser->can('ForceDelete:OrdenPersona');
+        return $authUser->can('ForceDelete:OrdenPersona')
+            && (bool) $ordenPersona->orden?->esEditable();
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

@@ -24,42 +24,42 @@ class ReservaStockPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:ReservaStock');
+        return false;
     }
 
     public function update(AuthUser $authUser, ReservaStock $reservaStock): bool
     {
-        return $authUser->can('Update:ReservaStock');
+        return false;
     }
 
     public function delete(AuthUser $authUser, ReservaStock $reservaStock): bool
     {
-        return $authUser->can('Delete:ReservaStock');
+        return false;
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:ReservaStock');
+        return false;
     }
 
     public function restore(AuthUser $authUser, ReservaStock $reservaStock): bool
     {
-        return $authUser->can('Restore:ReservaStock');
+        return false;
     }
 
     public function forceDelete(AuthUser $authUser, ReservaStock $reservaStock): bool
     {
-        return $authUser->can('ForceDelete:ReservaStock');
+        return false;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:ReservaStock');
+        return false;
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:ReservaStock');
+        return false;
     }
 
     public function replicate(AuthUser $authUser, ReservaStock $reservaStock): bool

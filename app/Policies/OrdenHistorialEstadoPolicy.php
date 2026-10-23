@@ -24,42 +24,42 @@ class OrdenHistorialEstadoPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:OrdenHistorialEstado');
+        return false;
     }
 
     public function update(AuthUser $authUser, OrdenHistorialEstado $ordenHistorialEstado): bool
     {
-        return $authUser->can('Update:OrdenHistorialEstado');
+        return false;
     }
 
     public function delete(AuthUser $authUser, OrdenHistorialEstado $ordenHistorialEstado): bool
     {
-        return $authUser->can('Delete:OrdenHistorialEstado');
+        return false;
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:OrdenHistorialEstado');
+        return false;
     }
 
     public function restore(AuthUser $authUser, OrdenHistorialEstado $ordenHistorialEstado): bool
     {
-        return $authUser->can('Restore:OrdenHistorialEstado');
+        return false;
     }
 
     public function forceDelete(AuthUser $authUser, OrdenHistorialEstado $ordenHistorialEstado): bool
     {
-        return $authUser->can('ForceDelete:OrdenHistorialEstado');
+        return false;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:OrdenHistorialEstado');
+        return false;
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:OrdenHistorialEstado');
+        return false;
     }
 
     public function replicate(AuthUser $authUser, OrdenHistorialEstado $ordenHistorialEstado): bool

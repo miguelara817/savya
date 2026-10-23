@@ -29,12 +29,20 @@ class PublicacionExistenciaPolicy
 
     public function update(AuthUser $authUser, PublicacionExistencia $publicacionExistencia): bool
     {
-        return $authUser->can('Update:PublicacionExistencia');
+        return $authUser->can('Update:PublicacionExistencia')
+            && $publicacionExistencia->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, PublicacionExistencia $publicacionExistencia): bool
     {
-        return $authUser->can('Delete:PublicacionExistencia');
+        return $authUser->can('Delete:PublicacionExistencia')
+            && $publicacionExistencia->estado === PublicacionExistencia::ESTADO_BORRADOR;
+    }
+
+    public function publicar(AuthUser $authUser, PublicacionExistencia $publicacionExistencia): bool
+    {
+        return $authUser->can('Publicar:PublicacionExistencia')
+            && $publicacionExistencia->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +57,8 @@ class PublicacionExistenciaPolicy
 
     public function forceDelete(AuthUser $authUser, PublicacionExistencia $publicacionExistencia): bool
     {
-        return $authUser->can('ForceDelete:PublicacionExistencia');
+        return $authUser->can('ForceDelete:PublicacionExistencia')
+            && $publicacionExistencia->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

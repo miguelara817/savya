@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\MovimientoHistorialEstados\Pages;
 
 use App\Filament\Resources\MovimientoHistorialEstados\MovimientoHistorialEstadoResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListMovimientoHistorialEstados extends ListRecords
@@ -12,8 +11,6 @@ class ListMovimientoHistorialEstados extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }

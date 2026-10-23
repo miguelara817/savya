@@ -29,12 +29,20 @@ class EntregaPolicy
 
     public function update(AuthUser $authUser, Entrega $entrega): bool
     {
-        return $authUser->can('Update:Entrega');
+        return $authUser->can('Update:Entrega')
+            && $entrega->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, Entrega $entrega): bool
     {
-        return $authUser->can('Delete:Entrega');
+        return $authUser->can('Delete:Entrega')
+            && $entrega->estado === Entrega::ESTADO_BORRADOR;
+    }
+
+    public function confirmar(AuthUser $authUser, Entrega $entrega): bool
+    {
+        return $authUser->can('Confirmar:Entrega')
+            && $entrega->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +57,8 @@ class EntregaPolicy
 
     public function forceDelete(AuthUser $authUser, Entrega $entrega): bool
     {
-        return $authUser->can('ForceDelete:Entrega');
+        return $authUser->can('ForceDelete:Entrega')
+            && $entrega->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

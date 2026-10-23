@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\MovimientoDetalles;
 
-use App\Filament\Resources\MovimientoDetalles\Pages\CreateMovimientoDetalle;
-use App\Filament\Resources\MovimientoDetalles\Pages\EditMovimientoDetalle;
 use App\Filament\Resources\MovimientoDetalles\Pages\ListMovimientoDetalles;
 use App\Models\MovimientoDetalle;
 use BackedEnum;
@@ -114,8 +112,6 @@ class MovimientoDetalleResource extends Resource
     {
         return [
             'index' => ListMovimientoDetalles::route('/'),
-            'create' => CreateMovimientoDetalle::route('/create'),
-            'edit' => EditMovimientoDetalle::route('/{record}/edit'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrdenEstadoCodigo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,34 @@ class Orden extends Model
             'fecha_efectivizacion' => 'datetime',
             'firmado_en' => 'datetime',
         ];
+    }
+
+    public function estadoCodigo(): ?string
+    {
+        return $this->estado?->codigo;
+    }
+
+    public function estaEnEstado(OrdenEstadoCodigo|string ...$codigos): bool
+    {
+        $codigosNormalizados = array_map(
+            static fn (OrdenEstadoCodigo|string $codigo): string => $codigo instanceof OrdenEstadoCodigo ? $codigo->value : $codigo,
+            $codigos,
+        );
+
+        return in_array($this->estadoCodigo(), $codigosNormalizados, true);
+    }
+
+    public function esEditable(): bool
+    {
+        return $this->estaEnEstado(OrdenEstadoCodigo::Borrador);
+    }
+
+    public function estaEnCurso(): bool
+    {
+        return $this->estaEnEstado(
+            OrdenEstadoCodigo::Aprobada,
+            OrdenEstadoCodigo::ParcialmenteAtendida,
+        );
     }
 
     /**

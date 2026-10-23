@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\SalidaDetalles;
 
-use App\Filament\Resources\SalidaDetalles\Pages\CreateSalidaDetalle;
-use App\Filament\Resources\SalidaDetalles\Pages\EditSalidaDetalle;
 use App\Filament\Resources\SalidaDetalles\Pages\ListSalidaDetalles;
 use App\Models\SalidaDetalle;
 use BackedEnum;
@@ -106,8 +104,6 @@ class SalidaDetalleResource extends Resource
     {
         return [
             'index' => ListSalidaDetalles::route('/'),
-            'create' => CreateSalidaDetalle::route('/create'),
-            'edit' => EditSalidaDetalle::route('/{record}/edit'),
         ];
     }
 }

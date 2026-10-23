@@ -22,6 +22,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Movimiento extends Model
 {
+    public const TIPO_ENTRADA = 'ENTRADA';
+
+    public const TIPO_SALIDA = 'SALIDA';
+
+    public const ESTADO_BORRADOR = 'BORRADOR';
+
+    public const ESTADO_CONFIRMADO = 'CONFIRMADO';
+
     protected $table = 'movimientos';
 
     protected $primaryKey = 'movimiento_id';

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Models\SalidaAlmacen;
 use App\Models\SalidaDetalle;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -29,12 +30,14 @@ class SalidaDetallePolicy
 
     public function update(AuthUser $authUser, SalidaDetalle $salidaDetalle): bool
     {
-        return $authUser->can('Update:SalidaDetalle');
+        return $authUser->can('Update:SalidaDetalle')
+            && $salidaDetalle->salida?->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, SalidaDetalle $salidaDetalle): bool
     {
-        return $authUser->can('Delete:SalidaDetalle');
+        return $authUser->can('Delete:SalidaDetalle')
+            && $salidaDetalle->salida?->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +52,8 @@ class SalidaDetallePolicy
 
     public function forceDelete(AuthUser $authUser, SalidaDetalle $salidaDetalle): bool
     {
-        return $authUser->can('ForceDelete:SalidaDetalle');
+        return $authUser->can('ForceDelete:SalidaDetalle')
+            && $salidaDetalle->salida?->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

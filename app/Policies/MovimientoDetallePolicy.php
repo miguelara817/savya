@@ -24,42 +24,42 @@ class MovimientoDetallePolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:MovimientoDetalle');
+        return false;
     }
 
     public function update(AuthUser $authUser, MovimientoDetalle $movimientoDetalle): bool
     {
-        return $authUser->can('Update:MovimientoDetalle');
+        return false;
     }
 
     public function delete(AuthUser $authUser, MovimientoDetalle $movimientoDetalle): bool
     {
-        return $authUser->can('Delete:MovimientoDetalle');
+        return false;
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:MovimientoDetalle');
+        return false;
     }
 
     public function restore(AuthUser $authUser, MovimientoDetalle $movimientoDetalle): bool
     {
-        return $authUser->can('Restore:MovimientoDetalle');
+        return false;
     }
 
     public function forceDelete(AuthUser $authUser, MovimientoDetalle $movimientoDetalle): bool
     {
-        return $authUser->can('ForceDelete:MovimientoDetalle');
+        return false;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:MovimientoDetalle');
+        return false;
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:MovimientoDetalle');
+        return false;
     }
 
     public function replicate(AuthUser $authUser, MovimientoDetalle $movimientoDetalle): bool

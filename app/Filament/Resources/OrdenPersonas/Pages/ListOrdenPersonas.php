@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\OrdenPersonas\Pages;
 
 use App\Filament\Resources\OrdenPersonas\OrdenPersonaResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListOrdenPersonas extends ListRecords
@@ -12,8 +11,6 @@ class ListOrdenPersonas extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }

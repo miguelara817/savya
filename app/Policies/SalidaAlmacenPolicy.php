@@ -29,12 +29,20 @@ class SalidaAlmacenPolicy
 
     public function update(AuthUser $authUser, SalidaAlmacen $salidaAlmacen): bool
     {
-        return $authUser->can('Update:SalidaAlmacen');
+        return $authUser->can('Update:SalidaAlmacen')
+            && $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, SalidaAlmacen $salidaAlmacen): bool
     {
-        return $authUser->can('Delete:SalidaAlmacen');
+        return $authUser->can('Delete:SalidaAlmacen')
+            && $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR;
+    }
+
+    public function confirmar(AuthUser $authUser, SalidaAlmacen $salidaAlmacen): bool
+    {
+        return $authUser->can('Confirmar:SalidaAlmacen')
+            && $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +57,8 @@ class SalidaAlmacenPolicy
 
     public function forceDelete(AuthUser $authUser, SalidaAlmacen $salidaAlmacen): bool
     {
-        return $authUser->can('ForceDelete:SalidaAlmacen');
+        return $authUser->can('ForceDelete:SalidaAlmacen')
+            && $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

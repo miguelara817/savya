@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\SalidaDetalles\Pages;
 
 use App\Filament\Resources\SalidaDetalles\SalidaDetalleResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListSalidaDetalles extends ListRecords
@@ -12,8 +11,6 @@ class ListSalidaDetalles extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }

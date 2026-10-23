@@ -2,19 +2,29 @@
 
 namespace App\Filament\Resources\Entregas;
 
-use App\Filament\Resources\Entregas\Pages\CreateEntrega;
 use App\Filament\Resources\Entregas\Pages\EditEntrega;
 use App\Filament\Resources\Entregas\Pages\ListEntregas;
+use App\Filament\Resources\Entregas\Pages\ViewEntrega;
 use App\Models\Entrega;
+use App\Models\SalidaDetalle;
+use App\Models\User;
+use App\Services\EntregaService;
 use BackedEnum;
+use DomainException;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -50,27 +60,27 @@ class EntregaResource extends Resource
                     ->schema([
                         TextInput::make('numero')
                             ->label('Número')
-                            ->required()
-                            ->maxLength(30)
-                            ->unique(ignoreRecord: true),
+                            ->disabled()
+                            ->dehydrated()
+                            ->maxLength(30),
                         Select::make('salida_id')
                             ->label('Salida')
                             ->relationship('salida', 'numero')
-                            ->searchable()
-                            ->preload()
+                            ->disabled()
+                            ->dehydrated()
                             ->required(),
                         TextInput::make('estado')
                             ->label('Estado')
-                            ->required()
-                            ->default('BORRADOR')
-                            ->maxLength(30),
+                            ->disabled()
+                            ->dehydrated()
+                            ->required(),
                         DateTimePicker::make('fecha_entrega')
                             ->label('Fecha de entrega'),
                         Select::make('responsable_user_id')
                             ->label('Responsable')
                             ->relationship('responsable', 'name')
-                            ->searchable()
-                            ->preload(),
+                            ->disabled()
+                            ->dehydrated(),
                         Select::make('receptor_persona_id')
                             ->label('Persona receptora')
                             ->relationship('receptor', 'nombre')
@@ -87,6 +97,34 @@ class EntregaResource extends Resource
                             ->label('Observaciones')
                             ->columnSpanFull(),
                     ]),
+                Section::make('Productos entregados')
+                    ->schema([
+                        Repeater::make('detalles')
+                            ->label('Detalle de la entrega')
+                            ->relationship()
+                            ->columns(2)
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->schema([
+                                Select::make('salida_detalle_id')
+                                    ->label('Producto despachado')
+                                    ->relationship('salidaDetalle', 'salida_detalle_id')
+                                    ->getOptionLabelFromRecordUsing(fn (SalidaDetalle $record): string => sprintf(
+                                        '%s (despachado: %d)',
+                                        $record->ordenProducto?->producto?->nombre ?? 'Producto',
+                                        $record->cantidad_despachada,
+                                    ))
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->required(),
+                                TextInput::make('cantidad_entregada')
+                                    ->label('Cantidad entregada')
+                                    ->integer()
+                                    ->minValue(1)
+                                    ->required(),
+                            ]),
+                    ]),
                 Section::make('Firma de conformidad')
                     ->columns(2)
                     ->schema([
@@ -95,9 +133,13 @@ class EntregaResource extends Resource
                             ->directory('firmas/entregas')
                             ->columnSpanFull(),
                         DateTimePicker::make('firmado_en')
-                            ->label('Firmado en'),
+                            ->label('Firmado en')
+                            ->disabled()
+                            ->dehydrated(),
                         DateTimePicker::make('confirmado_en')
-                            ->label('Confirmado en'),
+                            ->label('Confirmado en')
+                            ->disabled()
+                            ->dehydrated(),
                     ]),
             ]);
     }
@@ -121,6 +163,10 @@ class EntregaResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('detalles_count')
+                    ->label('Líneas')
+                    ->counts('detalles')
+                    ->numeric(),
                 TextColumn::make('fecha_entrega')
                     ->label('Fecha de entrega')
                     ->dateTime()
@@ -181,7 +227,33 @@ class EntregaResource extends Resource
                         ->all()),
             ])
             ->recordActions([
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('confirmar')
+                        ->label('Confirmar entrega')
+                        ->icon(Heroicon::OutlinedCheckCircle)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmar entrega')
+                        ->modalDescription('Se registrará la conformidad del receptor y la orden podrá completarse si todas las cantidades fueron entregadas. No se descuenta stock nuevamente.')
+                        ->authorize('confirmar')
+                        ->visible(fn (Entrega $record): bool => $record->estado === Entrega::ESTADO_BORRADOR)
+                        ->action(function (Entrega $record): void {
+                            try {
+                                app(EntregaService::class)->confirmar($record, self::usuarioActual());
+                            } catch (DomainException $exception) {
+                                self::notificarError($exception);
+
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title('Entrega confirmada')
+                                ->success()
+                                ->send();
+                        }),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -194,8 +266,28 @@ class EntregaResource extends Resource
     {
         return [
             'index' => ListEntregas::route('/'),
-            'create' => CreateEntrega::route('/create'),
+            'view' => ViewEntrega::route('/{record}'),
             'edit' => EditEntrega::route('/{record}/edit'),
         ];
+    }
+
+    private static function usuarioActual(): User
+    {
+        $usuario = Filament::auth()->user();
+
+        if (! $usuario instanceof User) {
+            abort(403);
+        }
+
+        return $usuario;
+    }
+
+    private static function notificarError(DomainException $exception): void
+    {
+        Notification::make()
+            ->title('No se pudo completar la acción')
+            ->body($exception->getMessage())
+            ->danger()
+            ->send();
     }
 }

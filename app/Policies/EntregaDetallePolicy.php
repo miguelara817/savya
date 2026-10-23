@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Models\Entrega;
 use App\Models\EntregaDetalle;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -29,12 +30,14 @@ class EntregaDetallePolicy
 
     public function update(AuthUser $authUser, EntregaDetalle $entregaDetalle): bool
     {
-        return $authUser->can('Update:EntregaDetalle');
+        return $authUser->can('Update:EntregaDetalle')
+            && $entregaDetalle->entrega?->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, EntregaDetalle $entregaDetalle): bool
     {
-        return $authUser->can('Delete:EntregaDetalle');
+        return $authUser->can('Delete:EntregaDetalle')
+            && $entregaDetalle->entrega?->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +52,8 @@ class EntregaDetallePolicy
 
     public function forceDelete(AuthUser $authUser, EntregaDetalle $entregaDetalle): bool
     {
-        return $authUser->can('ForceDelete:EntregaDetalle');
+        return $authUser->can('ForceDelete:EntregaDetalle')
+            && $entregaDetalle->entrega?->estado === Entrega::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

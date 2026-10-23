@@ -17,6 +17,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class PublicacionExistencia extends Model
 {
+    public const ESTADO_BORRADOR = 'BORRADOR';
+
+    public const ESTADO_PUBLICADA = 'PUBLICADA';
+
+    public const ESTADO_ANULADA = 'ANULADA';
+
     protected $table = 'publicaciones_existencias';
 
     protected $primaryKey = 'publicacion_id';

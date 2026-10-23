@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\EntregaDetalles;
 
-use App\Filament\Resources\EntregaDetalles\Pages\CreateEntregaDetalle;
-use App\Filament\Resources\EntregaDetalles\Pages\EditEntregaDetalle;
 use App\Filament\Resources\EntregaDetalles\Pages\ListEntregaDetalles;
 use App\Models\EntregaDetalle;
 use BackedEnum;
@@ -114,8 +112,6 @@ class EntregaDetalleResource extends Resource
     {
         return [
             'index' => ListEntregaDetalles::route('/'),
-            'create' => CreateEntregaDetalle::route('/create'),
-            'edit' => EditEntregaDetalle::route('/{record}/edit'),
         ];
     }
 }

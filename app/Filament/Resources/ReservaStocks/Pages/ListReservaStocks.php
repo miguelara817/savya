@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ReservaStocks\Pages;
 
 use App\Filament\Resources\ReservaStocks\ReservaStockResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListReservaStocks extends ListRecords
@@ -12,8 +11,6 @@ class ListReservaStocks extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }

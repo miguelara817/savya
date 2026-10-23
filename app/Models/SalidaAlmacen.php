@@ -23,6 +23,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class SalidaAlmacen extends Model
 {
+    public const ESTADO_BORRADOR = 'BORRADOR';
+
+    public const ESTADO_CONFIRMADA = 'CONFIRMADA';
+
+    public const ESTADO_ANULADA = 'ANULADA';
+
     protected $table = 'salidas_almacen';
 
     protected $primaryKey = 'salida_id';

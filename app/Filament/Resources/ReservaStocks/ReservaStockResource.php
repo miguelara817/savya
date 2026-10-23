@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\ReservaStocks;
 
-use App\Filament\Resources\ReservaStocks\Pages\CreateReservaStock;
-use App\Filament\Resources\ReservaStocks\Pages\EditReservaStock;
 use App\Filament\Resources\ReservaStocks\Pages\ListReservaStocks;
 use App\Models\ReservaStock;
 use BackedEnum;
@@ -149,8 +147,6 @@ class ReservaStockResource extends Resource
     {
         return [
             'index' => ListReservaStocks::route('/'),
-            'create' => CreateReservaStock::route('/create'),
-            'edit' => EditReservaStock::route('/{record}/edit'),
         ];
     }
 }

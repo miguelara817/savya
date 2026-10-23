@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\OrdenProductos;
 
-use App\Filament\Resources\OrdenProductos\Pages\CreateOrdenProducto;
-use App\Filament\Resources\OrdenProductos\Pages\EditOrdenProducto;
 use App\Filament\Resources\OrdenProductos\Pages\ListOrdenProductos;
 use App\Models\OrdenProducto;
 use BackedEnum;
@@ -130,8 +128,6 @@ class OrdenProductoResource extends Resource
     {
         return [
             'index' => ListOrdenProductos::route('/'),
-            'create' => CreateOrdenProducto::route('/create'),
-            'edit' => EditOrdenProducto::route('/{record}/edit'),
         ];
     }
 }

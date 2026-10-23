@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\OrdenHistorialEstados;
 
-use App\Filament\Resources\OrdenHistorialEstados\Pages\CreateOrdenHistorialEstado;
-use App\Filament\Resources\OrdenHistorialEstados\Pages\EditOrdenHistorialEstado;
 use App\Filament\Resources\OrdenHistorialEstados\Pages\ListOrdenHistorialEstados;
 use App\Models\OrdenHistorialEstado;
 use BackedEnum;
@@ -110,8 +108,6 @@ class OrdenHistorialEstadoResource extends Resource
     {
         return [
             'index' => ListOrdenHistorialEstados::route('/'),
-            'create' => CreateOrdenHistorialEstado::route('/create'),
-            'edit' => EditOrdenHistorialEstado::route('/{record}/edit'),
         ];
     }
 }

@@ -17,6 +17,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class ReservaStock extends Model
 {
+    public const ESTADO_ACTIVA = 'ACTIVA';
+
+    public const ESTADO_PARCIAL = 'PARCIAL';
+
+    public const ESTADO_LIBERADA = 'LIBERADA';
+
     protected $table = 'reservas_stock';
 
     protected $primaryKey = 'reserva_stock_id';

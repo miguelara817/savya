@@ -23,6 +23,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Entrega extends Model
 {
+    public const ESTADO_BORRADOR = 'BORRADOR';
+
+    public const ESTADO_CONFIRMADA = 'CONFIRMADA';
+
+    public const ESTADO_ANULADA = 'ANULADA';
+
     protected $table = 'entregas';
 
     protected $primaryKey = 'entrega_id';

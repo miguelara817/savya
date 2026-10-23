@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\MovimientoHistorialEstados;
 
-use App\Filament\Resources\MovimientoHistorialEstados\Pages\CreateMovimientoHistorialEstado;
-use App\Filament\Resources\MovimientoHistorialEstados\Pages\EditMovimientoHistorialEstado;
 use App\Filament\Resources\MovimientoHistorialEstados\Pages\ListMovimientoHistorialEstados;
 use App\Models\MovimientoHistorialEstado;
 use BackedEnum;
@@ -114,8 +112,6 @@ class MovimientoHistorialEstadoResource extends Resource
     {
         return [
             'index' => ListMovimientoHistorialEstados::route('/'),
-            'create' => CreateMovimientoHistorialEstado::route('/create'),
-            'edit' => EditMovimientoHistorialEstado::route('/{record}/edit'),
         ];
     }
 }

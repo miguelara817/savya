@@ -2,20 +2,10 @@
 
 namespace App\Filament\Resources\Movimientos;
 
-use App\Filament\Resources\Movimientos\Pages\CreateMovimiento;
-use App\Filament\Resources\Movimientos\Pages\EditMovimiento;
 use App\Filament\Resources\Movimientos\Pages\ListMovimientos;
 use App\Models\Movimiento;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -42,70 +32,7 @@ class MovimientoResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Section::make('Datos del movimiento')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('numero')
-                            ->label('Número')
-                            ->required()
-                            ->maxLength(30)
-                            ->unique(ignoreRecord: true),
-                        TextInput::make('tipo')
-                            ->label('Tipo')
-                            ->required()
-                            ->maxLength(30)
-                            ->datalist(['ENTRADA', 'SALIDA', 'TRANSFERENCIA', 'AJUSTE']),
-                        TextInput::make('estado')
-                            ->label('Estado')
-                            ->required()
-                            ->default('BORRADOR')
-                            ->maxLength(20),
-                        DateTimePicker::make('fecha_movimiento')
-                            ->label('Fecha del movimiento')
-                            ->required()
-                            ->default(now()),
-                        DateTimePicker::make('confirmado_en')
-                            ->label('Confirmado en'),
-                    ]),
-                Section::make('Ubicaciones')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('almacen_origen_id')
-                            ->label('Almacén de origen')
-                            ->relationship('almacenOrigen', 'nombre')
-                            ->searchable()
-                            ->preload(),
-                        Select::make('almacen_destino_id')
-                            ->label('Almacén de destino')
-                            ->relationship('almacenDestino', 'nombre')
-                            ->searchable()
-                            ->preload(),
-                    ]),
-                Section::make('Referencias')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('orden_id')
-                            ->label('Orden')
-                            ->relationship('orden', 'numero')
-                            ->searchable()
-                            ->preload(),
-                        Select::make('salida_id')
-                            ->label('Salida de almacén')
-                            ->relationship('salida', 'numero')
-                            ->searchable()
-                            ->preload(),
-                        Select::make('responsable_user_id')
-                            ->label('Responsable')
-                            ->relationship('responsable', 'name')
-                            ->searchable()
-                            ->preload(),
-                        Textarea::make('observaciones')
-                            ->label('Observaciones')
-                            ->columnSpanFull(),
-                    ]),
-            ]);
+        return $schema->components([]);
     }
 
     public static function table(Table $table): Table
@@ -147,7 +74,7 @@ class MovimientoResource extends Resource
                     ->searchable(),
                 TextColumn::make('observaciones')
                     ->label('Observaciones')
-                    ->limit(50)
+                    ->limit(80)
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('confirmado_en')
                     ->label('Confirmado en')
@@ -156,11 +83,6 @@ class MovimientoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -182,22 +104,34 @@ class MovimientoResource extends Resource
                     ->label('Orden')
                     ->relationship('orden', 'numero'),
             ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->recordActions([])
+            ->toolbarActions([]);
     }
 
     public static function getPages(): array
     {
         return [
             'index' => ListMovimientos::route('/'),
-            'create' => CreateMovimiento::route('/create'),
-            'edit' => EditMovimiento::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 }

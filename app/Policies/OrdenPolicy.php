@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\OrdenEstadoCodigo;
 use App\Models\Orden;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -29,12 +30,41 @@ class OrdenPolicy
 
     public function update(AuthUser $authUser, Orden $orden): bool
     {
-        return $authUser->can('Update:Orden');
+        return $authUser->can('Update:Orden') && $orden->esEditable();
     }
 
     public function delete(AuthUser $authUser, Orden $orden): bool
     {
-        return $authUser->can('Delete:Orden');
+        return $authUser->can('Delete:Orden') && $orden->esEditable();
+    }
+
+    public function enviarAprobacion(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('EnviarAprobacion:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Borrador);
+    }
+
+    public function aprobar(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('Aprobar:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion);
+    }
+
+    public function rechazar(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('Rechazar:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion);
+    }
+
+    public function cancelar(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('Cancelar:Orden')
+            && ! $orden->estaEnEstado(
+                OrdenEstadoCodigo::Completada,
+                OrdenEstadoCodigo::Rechazada,
+                OrdenEstadoCodigo::Cancelada,
+                OrdenEstadoCodigo::Anulado,
+            );
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +79,7 @@ class OrdenPolicy
 
     public function forceDelete(AuthUser $authUser, Orden $orden): bool
     {
-        return $authUser->can('ForceDelete:Orden');
+        return $authUser->can('ForceDelete:Orden') && $orden->esEditable();
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

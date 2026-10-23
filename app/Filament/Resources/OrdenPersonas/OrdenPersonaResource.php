@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\OrdenPersonas;
 
-use App\Filament\Resources\OrdenPersonas\Pages\CreateOrdenPersona;
-use App\Filament\Resources\OrdenPersonas\Pages\EditOrdenPersona;
 use App\Filament\Resources\OrdenPersonas\Pages\ListOrdenPersonas;
 use App\Models\OrdenPersona;
 use BackedEnum;
@@ -105,8 +103,6 @@ class OrdenPersonaResource extends Resource
     {
         return [
             'index' => ListOrdenPersonas::route('/'),
-            'create' => CreateOrdenPersona::route('/create'),
-            'edit' => EditOrdenPersona::route('/{record}/edit'),
         ];
     }
 }

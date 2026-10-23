@@ -24,42 +24,42 @@ class MovimientoHistorialEstadoPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:MovimientoHistorialEstado');
+        return false;
     }
 
     public function update(AuthUser $authUser, MovimientoHistorialEstado $movimientoHistorialEstado): bool
     {
-        return $authUser->can('Update:MovimientoHistorialEstado');
+        return false;
     }
 
     public function delete(AuthUser $authUser, MovimientoHistorialEstado $movimientoHistorialEstado): bool
     {
-        return $authUser->can('Delete:MovimientoHistorialEstado');
+        return false;
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:MovimientoHistorialEstado');
+        return false;
     }
 
     public function restore(AuthUser $authUser, MovimientoHistorialEstado $movimientoHistorialEstado): bool
     {
-        return $authUser->can('Restore:MovimientoHistorialEstado');
+        return false;
     }
 
     public function forceDelete(AuthUser $authUser, MovimientoHistorialEstado $movimientoHistorialEstado): bool
     {
-        return $authUser->can('ForceDelete:MovimientoHistorialEstado');
+        return false;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:MovimientoHistorialEstado');
+        return false;
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:MovimientoHistorialEstado');
+        return false;
     }
 
     public function replicate(AuthUser $authUser, MovimientoHistorialEstado $movimientoHistorialEstado): bool

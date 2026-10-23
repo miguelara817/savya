@@ -6,16 +6,26 @@ use App\Filament\Resources\PublicacionExistencias\Pages\CreatePublicacionExisten
 use App\Filament\Resources\PublicacionExistencias\Pages\EditPublicacionExistencia;
 use App\Filament\Resources\PublicacionExistencias\Pages\ListPublicacionExistencias;
 use App\Models\PublicacionExistencia;
+use App\Models\User;
+use App\Services\PublicacionExistenciaService;
+use App\Support\DocumentoNumero;
 use BackedEnum;
+use DomainException;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -44,32 +54,70 @@ class PublicacionExistenciaResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('numero')
-                    ->label('Número')
-                    ->required()
-                    ->maxLength(30)
-                    ->unique(ignoreRecord: true),
-                DateTimePicker::make('fecha_publicacion')
-                    ->label('Fecha de publicación')
-                    ->required()
-                    ->default(now()),
-                Select::make('responsable_user_id')
-                    ->label('Responsable')
-                    ->relationship('responsable', 'name')
-                    ->default(fn (): ?int => Filament::auth()->id())
-                    ->searchable()
-                    ->preload()
-                    ->disabled()->dehydrated(),
-                TextInput::make('estado')
-                    ->label('Estado')
-                    ->required()
-                    ->default('BORRADOR')
-                    ->maxLength(20),
-                // DateTimePicker::make('publicada_en')
-                //     ->label('Publicada en'),
-                Textarea::make('observaciones')
-                    ->label('Observaciones')
-                    ->columnSpanFull(),
+                Section::make('Datos de la publicación')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('numero')
+                            ->label('Número')
+                            ->default(fn (): string => DocumentoNumero::generar('PUB'))
+                            ->disabled()
+                            ->dehydrated()
+                            ->maxLength(30),
+                        DateTimePicker::make('fecha_publicacion')
+                            ->label('Fecha de publicación')
+                            ->default(now())
+                            ->required(),
+                        Select::make('responsable_user_id')
+                            ->label('Responsable')
+                            ->relationship('responsable', 'name')
+                            ->default(fn (): ?int => Filament::auth()->id())
+                            ->disabled()
+                            ->dehydrated(),
+                        TextInput::make('estado')
+                            ->label('Estado')
+                            ->default(PublicacionExistencia::ESTADO_BORRADOR)
+                            ->disabled()
+                            ->dehydrated()
+                            ->maxLength(20),
+                        Textarea::make('observaciones')
+                            ->label('Observaciones')
+                            ->columnSpanFull(),
+                    ]),
+                Section::make('Existencias')
+                    ->description('Fotografía histórica. Estas líneas no alteran el stock operativo.')
+                    ->schema([
+                        Repeater::make('existencias')
+                            ->label('Líneas de existencias')
+                            ->relationship()
+                            ->columns(4)
+                            ->minItems(1)
+                            ->defaultItems(1)
+                            ->schema([
+                                Select::make('producto_id')
+                                    ->label('Producto')
+                                    ->relationship('producto', 'nombre')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('almacen_id')
+                                    ->label('Almacén')
+                                    ->relationship('almacen', 'nombre')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                TextInput::make('cantidad')
+                                    ->label('Cantidad')
+                                    ->integer()
+                                    ->minValue(0)
+                                    ->required(),
+                                TextInput::make('precio_unitario')
+                                    ->label('Precio unitario')
+                                    ->numeric()
+                                    ->prefix('Bs')
+                                    ->minValue(0)
+                                    ->required(),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -96,6 +144,10 @@ class PublicacionExistenciaResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('existencias_count')
+                    ->label('Líneas')
+                    ->counts('existencias')
+                    ->numeric(),
                 TextColumn::make('publicada_en')
                     ->label('Publicada en')
                     ->dateTime()
@@ -127,7 +179,34 @@ class PublicacionExistenciaResource extends Resource
                         ->all()),
             ])
             ->recordActions([
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('publicar')
+                        ->label('Publicar')
+                        ->icon(Heroicon::OutlinedCheckBadge)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Publicar existencias')
+                        ->modalDescription('La publicación quedará inmutable. No se modifica el stock operativo.')
+                        ->authorize('publicar')
+                        ->visible(fn (PublicacionExistencia $record): bool => $record->estado === PublicacionExistencia::ESTADO_BORRADOR)
+                        ->action(function (PublicacionExistencia $record): void {
+                            try {
+                                app(PublicacionExistenciaService::class)->publicar($record, self::usuarioActual());
+                            } catch (DomainException $exception) {
+                                self::notificarError($exception);
+
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title('Publicación registrada')
+                                ->body('La fotografía de existencias fue publicada correctamente.')
+                                ->success()
+                                ->send();
+                        }),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -140,8 +219,28 @@ class PublicacionExistenciaResource extends Resource
     {
         return [
             'index' => ListPublicacionExistencias::route('/'),
-            // 'create' => CreatePublicacionExistencia::route('/create'),
-            // 'edit' => EditPublicacionExistencia::route('/{record}/edit'),
+            'create' => CreatePublicacionExistencia::route('/create'),
+            'edit' => EditPublicacionExistencia::route('/{record}/edit'),
         ];
+    }
+
+    private static function usuarioActual(): User
+    {
+        $usuario = Filament::auth()->user();
+
+        if (! $usuario instanceof User) {
+            abort(403);
+        }
+
+        return $usuario;
+    }
+
+    private static function notificarError(DomainException $exception): void
+    {
+        Notification::make()
+            ->title('No se pudo completar la acción')
+            ->body($exception->getMessage())
+            ->danger()
+            ->send();
     }
 }

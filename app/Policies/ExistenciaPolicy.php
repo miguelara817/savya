@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Existencia;
+use App\Models\PublicacionExistencia;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -29,12 +30,14 @@ class ExistenciaPolicy
 
     public function update(AuthUser $authUser, Existencia $existencia): bool
     {
-        return $authUser->can('Update:Existencia');
+        return $authUser->can('Update:Existencia')
+            && $existencia->publicacion?->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function delete(AuthUser $authUser, Existencia $existencia): bool
     {
-        return $authUser->can('Delete:Existencia');
+        return $authUser->can('Delete:Existencia')
+            && $existencia->publicacion?->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +52,8 @@ class ExistenciaPolicy
 
     public function forceDelete(AuthUser $authUser, Existencia $existencia): bool
     {
-        return $authUser->can('ForceDelete:Existencia');
+        return $authUser->can('ForceDelete:Existencia')
+            && $existencia->publicacion?->estado === PublicacionExistencia::ESTADO_BORRADOR;
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

@@ -27,7 +27,7 @@ return [
             'pages' => true,
             'widgets' => true,
             'resources' => true,
-            'custom_permissions' => false,
+            'custom_permissions' => true,
         ],
     ],
 
@@ -252,7 +252,15 @@ return [
     |
     */
 
-    'custom_permissions' => [],
+    'custom_permissions' => [
+        'EnviarAprobacion:Orden',
+        'Aprobar:Orden',
+        'Rechazar:Orden',
+        'Cancelar:Orden',
+        'Confirmar:SalidaAlmacen',
+        'Confirmar:Entrega',
+        'Publicar:PublicacionExistencia',
+    ],
 
     /*
     |--------------------------------------------------------------------------

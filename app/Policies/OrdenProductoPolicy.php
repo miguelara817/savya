@@ -29,12 +29,14 @@ class OrdenProductoPolicy
 
     public function update(AuthUser $authUser, OrdenProducto $ordenProducto): bool
     {
-        return $authUser->can('Update:OrdenProducto');
+        return $authUser->can('Update:OrdenProducto')
+            && (bool) $ordenProducto->orden?->esEditable();
     }
 
     public function delete(AuthUser $authUser, OrdenProducto $ordenProducto): bool
     {
-        return $authUser->can('Delete:OrdenProducto');
+        return $authUser->can('Delete:OrdenProducto')
+            && (bool) $ordenProducto->orden?->esEditable();
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -49,7 +51,8 @@ class OrdenProductoPolicy
 
     public function forceDelete(AuthUser $authUser, OrdenProducto $ordenProducto): bool
     {
-        return $authUser->can('ForceDelete:OrdenProducto');
+        return $authUser->can('ForceDelete:OrdenProducto')
+            && (bool) $ordenProducto->orden?->esEditable();
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
