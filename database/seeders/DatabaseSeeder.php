@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             ShieldPermisosSeeder::class,
             RolesPermisosSeeder::class,
             AdminUserSeeder::class,
-            AlmacenSeeder::class
+            AlmacenSeeder::class,
+            UsersPruebasSeeder::class
         ]);
     }
 }

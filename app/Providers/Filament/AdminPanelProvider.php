@@ -20,6 +20,9 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -31,9 +34,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->maxContentWidth(Width::Full)
+            ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
+            ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))
+            // ->darkModeBrandLogo(asset('images/07_SAVYA_horizontal_azul_monocromo_transparente.png'))
+            ->brandLogoHeight('9rem')
             ->colors([
-                // 'primary' => Color::Blue[950],
-                'primary' => Color::hex('#243652'),
+                'primary' => Color::hex('#082d44'),
                 'gray' => Color::Slate,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -46,6 +52,9 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])
+            ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render('<style>.dark .fi-topbar,.dark .fi-sidebar-header,.dark .fi-topbar-nav-groups{background-color:#082d44!important}.dark .fi-topbar,.dark .fi-sidebar-header{border-color:transparent!important}.dark .fi-simple-main,.dark .fi-main-content
+            {background-color:#082d44!important}.dark .fi-simple-main-ctn{background-image:none!important}</style>'))
+            // {border-color:transparent!important}.dark .fi-simple-main,.dark .fi-body
             ->plugins([
                 FilamentShieldPlugin::make(),
             ])

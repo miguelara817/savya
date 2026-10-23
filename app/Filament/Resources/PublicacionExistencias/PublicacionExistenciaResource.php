@@ -36,13 +36,13 @@ class PublicacionExistenciaResource extends Resource
 {
     protected static ?string $model = PublicacionExistencia::class;
 
-    protected static ?string $slug = 'publicaciones-existencias';
+    protected static ?string $slug = 'existencias';
 
     protected static ?string $recordTitleAttribute = 'numero';
 
-    protected static ?string $modelLabel = 'publicación de existencias';
+    protected static ?string $modelLabel = 'Existencias';
 
-    protected static ?string $pluralModelLabel = 'publicaciones de existencias';
+    protected static ?string $pluralModelLabel = 'Existencias';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
@@ -203,7 +203,7 @@ class PublicacionExistenciaResource extends Resource
 
                             Notification::make()
                                 ->title('Publicación registrada')
-                                ->body('La fotografía de existencias fue publicada correctamente.')
+                                ->body('Existencias publicadas correctamente.')
                                 ->success()
                                 ->send();
                         }),
