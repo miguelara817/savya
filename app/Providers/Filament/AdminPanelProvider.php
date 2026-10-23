@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))

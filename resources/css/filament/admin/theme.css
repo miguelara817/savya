@@ -1,0 +1,12 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* Logo en dispositivos móviles */
+@media (max-width: 1024px) {
+    .fi-logo {
+        height: 4rem !important;
+        width: auto;
+    }
+}
