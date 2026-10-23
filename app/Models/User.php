@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
+use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
 
 #[Fillable(['persona_id', 'name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]

@@ -38,6 +38,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -92,7 +93,8 @@ class OrdenResource extends Resource
                             ->relationship('persona', 'nombre')
                             ->default(fn (): ?int => Filament::auth()->id())
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->hidden(true),
                         TextInput::make('razon_social')
                             ->label('Razón social')
                             ->required()
@@ -109,15 +111,22 @@ class OrdenResource extends Resource
                             ->email()
                             ->maxLength(150),
                     ]),
-                Section::make('Operación')
-                    ->columns(2)
+                
+                Section::make('Productos solicitados')
+                    // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
                     ->schema([
+                        DateTimePicker::make('fecha_registro')
+                            ->label('Fecha de registro')
+                            ->default(now())
+                            ->disabled()
+                            ->dehydrated(),
                         Select::make('almacen_id')
                             ->label('Almacén')
                             ->relationship('almacen', 'nombre')
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->live()
                             ->disabled(fn (string $operation): bool => $operation !== 'create')
                             ->dehydrated(),
                         Select::make('solicitante_user_id')
@@ -125,19 +134,11 @@ class OrdenResource extends Resource
                             ->relationship('solicitante', 'name')
                             ->default(fn (): ?int => Filament::auth()->id())
                             ->disabled()
-                            ->dehydrated(),
-                        DateTimePicker::make('fecha_registro')
-                            ->label('Fecha de registro')
-                            ->default(now())
-                            ->disabled()
-                            ->dehydrated(),
-                        Textarea::make('observaciones')
-                            ->label('Observaciones')
-                            ->columnSpanFull(),
-                    ]),
-                Section::make('Productos solicitados')
-                    // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
-                    ->schema([
+                            ->dehydrated()
+                            ->hidden(true),
+                        // Textarea::make('observaciones')
+                        //     ->label('Observaciones')
+                        //     ->columnSpanFull(),
                         Repeater::make('productos')
                             ->label('Productos')
                             ->relationship()
@@ -147,36 +148,58 @@ class OrdenResource extends Resource
                             ->schema([
                                 Select::make('existencia_id')
                                     ->label('Existencia publicada')
-                                    ->options(fn (): array => Existencia::query()
-                                        ->with(['producto', 'almacen', 'publicacion'])
-                                        ->whereHas('publicacion', fn ($query) => $query
-                                            ->where('estado', 'PUBLICADA')
-                                            ->where('publicada_en', function ($subquery) {
-                                                $subquery->from('publicaciones_existencias')
-                                                    ->selectRaw('MAX(publicada_en)');
-                                            })
-                                        )
-                                        ->orderByDesc('existencia_id')
-                                        ->get()
-                                        ->mapWithKeys(fn (Existencia $existencia): array => [
-                                            $existencia->existencia_id => sprintf(
-                                                '%s — %s (%s, disp. %d)',
-                                                $existencia->producto?->nombre ?? 'Producto',
-                                                $existencia->almacen?->nombre ?? 'Almacén',
-                                                $existencia->publicacion?->estado ?? 'SIN PUBLICACIÓN',
-                                                $existencia->cantidad,
-                                            ),
-                                        ])
-                                        ->all())
+                                    ->options(function (Get $get): array {
+                                        // Obtener el almacén seleccionado en el formulario principal
+                                        $almacenId = $get('../../almacen_id');
+
+                                        if (! $almacenId) {
+                                            return [];
+                                        }
+
+                                        return Existencia::query()
+                                            ->with(['producto', 'almacen', 'publicacion'])
+                                            ->where('almacen_id', $almacenId)
+                                            ->whereHas('publicacion', fn ($query) => $query
+                                                ->where('estado', 'PUBLICADA')
+                                                ->where('publicada_en', function ($subquery) {
+                                                    $subquery->from('publicaciones_existencias')
+                                                        ->selectRaw('MAX(publicada_en)');
+                                                })
+                                            )
+                                            ->orderByDesc('existencia_id')
+                                            ->get()
+                                            // ->mapWithKeys(fn (Existencia $existencia): array => [
+                                            //     $existencia->existencia_id => sprintf(
+                                            //         '%s — %s (%s, disp. %d)',
+                                            //         $existencia->producto?->nombre ?? 'Producto',
+                                            //         $existencia->almacen?->nombre ?? 'Almacén',
+                                            //         $existencia->publicacion?->estado ?? 'SIN PUBLICACIÓN',
+                                            //         $existencia->cantidad,
+                                            //     ),
+                                            // ])
+                                            ->mapWithKeys(fn (Existencia $existencia): array => [
+                                                $existencia->existencia_id => sprintf(
+                                                    '%s — %s',
+                                                    $existencia->producto?->nombre ?? 'Producto',
+                                                    $existencia->almacen?->nombre ?? 'Almacén'
+                                                ),
+                                            ])
+                                            ->all();
+                                    })
                                     ->searchable()
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(function (?int $state, Set $set): void {
-                                        $existencia = Existencia::query()->find($state);
+                                    ->afterStateUpdated(function (?int $state, Get $get, Set $set): void {
+                                        $existencia = $state
+                                            ? Existencia::query()->find($state)
+                                            : null;
 
                                         if ($existencia) {
                                             $set('producto_id', $existencia->producto_id);
                                             $set('precio_unitario', $existencia->precio_unitario);
+                                        } else {
+                                            $set('producto_id', null);
+                                            $set('precio_unitario', null);
                                         }
                                     })
                                     ->columnSpan(2),
@@ -192,6 +215,8 @@ class OrdenResource extends Resource
                                     ->numeric()
                                     ->prefix('Bs')
                                     ->minValue(0)
+                                    ->disabled(true)
+                                    ->dehydrated(true)
                                     ->required(),
                             ])
                             ->itemLabel(fn (array $state): ?string => filled($state['producto_id'] ?? null)

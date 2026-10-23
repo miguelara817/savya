@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -34,10 +35,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
+            // ->profile()
+            // ->multiFactorAuthentication([
+            //     AppAuthentication::make(),
+            // ], isRequired:true)
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
             ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))
-            // ->darkModeBrandLogo(asset('images/07_SAVYA_horizontal_azul_monocromo_transparente.png'))
             ->brandLogoHeight('9rem')
             ->colors([
                 'primary' => Color::hex('#082d44'),
