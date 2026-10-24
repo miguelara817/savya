@@ -32,6 +32,7 @@ use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -74,6 +75,11 @@ class OrdenResource extends Resource
         return $schema
             ->columns(1)
             ->components([
+                Hidden::make('orden_estado_id')
+                    ->default(fn (): ?int => OrdenEstado::query()
+                        ->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value)
+                        ->value('orden_estado_id'))
+                    ->dehydrated(),
                 Section::make('')
                     ->columns(2)
                     ->schema([
@@ -82,7 +88,8 @@ class OrdenResource extends Resource
                             ->default(fn (): string => DocumentoNumero::generar('ORD'))
                             ->disabled()
                             ->dehydrated()
-                            ->maxLength(30),
+                            ->maxLength(30)
+                            ->hidden(true),
                         // TextInput::make('codigo_orden')
                         //     ->label('Código UUID')
                         //     ->default(fn (): string => (string) Str::uuid())
@@ -115,6 +122,7 @@ class OrdenResource extends Resource
 
                 Section::make('Productos solicitados')
                     // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
+                    ->columns(2)
                     ->schema([
                         DateTimePicker::make('fecha_registro')
                             ->label('Fecha de registro')
@@ -142,8 +150,9 @@ class OrdenResource extends Resource
                         //     ->columnSpanFull(),
                         Repeater::make('productos')
                             ->label('Productos')
+                            ->columnSpanFull()
                             ->relationship()
-                            ->columns(4)
+                            ->columns(5)
                             ->minItems(1)
                             ->defaultItems(0)
                             ->schema([
@@ -168,10 +177,9 @@ class OrdenResource extends Resource
                                             ->get()
                                             ->mapWithKeys(fn (StockSaldo $saldo): array => [
                                                 $saldo->existencia_vigente_id => sprintf(
-                                                    '%s — Bs %s (disp. %d)',
+                                                    '%s — Bs %s',
                                                     $saldo->producto?->nombre ?? 'Producto',
-                                                    number_format((float) $saldo->precio_venta, 2),
-                                                    $saldo->disponible,
+                                                    number_format((float) $saldo->precio_venta, 2)
                                                 ),
                                             ])
                                             ->all();
@@ -199,7 +207,8 @@ class OrdenResource extends Resource
                                     ->label('Cantidad')
                                     ->integer()
                                     ->minValue(1)
-                                    ->required(),
+                                    ->required()
+                                    ->live(),
                                 TextInput::make('precio_unitario')
                                     ->label('Precio unitario')
                                     ->numeric()
@@ -208,12 +217,46 @@ class OrdenResource extends Resource
                                     ->disabled(true)
                                     ->dehydrated(true)
                                     ->required(),
+                                Placeholder::make('precio_total')
+                                    ->label('Precio Total')
+                                    ->content(function (Get $get): string {
+                                        $cantidad = (float) ($get('cantidad_solicitada') ?? 0);
+                                        $precio = (float) ($get('precio_unitario') ?? 0);
+
+                                        return 'Bs '.number_format($cantidad * $precio, 2);
+                                    }),
                             ])
                             ->itemLabel(fn (array $state): ?string => filled($state['producto_id'] ?? null)
                                 ? app(Producto::class)->newQuery()->whereKey($state['producto_id'])->value('nombre')
                                 : null)
                             ->reorderable(false),
+                        Section::make()
+                            ->columns(2)
+                            ->columnSpanFull()
+                            ->schema([
+                                Placeholder::make('cantidad_total')
+                                    ->label('Cantidad total')
+                                    ->content(function (Get $get): string {
+                                        $productos = collect($get('productos') ?? []);
+
+                                        return (string) $productos->sum(
+                                            fn (array $item): int => (int) ($item['cantidad_solicitada'] ?? 0)
+                                        );
+                                    }),
+
+                                Placeholder::make('precio_total_general')
+                                    ->label('IMPORTE TOTAL')
+                                    ->content(function (Get $get): string {
+                                        $total = collect($get('productos') ?? [])
+                                            ->sum(fn (array $item): float => (float) ($item['cantidad_solicitada'] ?? 0)
+                                                * (float) ($item['precio_unitario'] ?? 0)
+                                            );
+
+                                        return 'Bs '.number_format($total, 2, '.', ',');
+                                    }),
+                            ]),
                     ]),
+
                 Section::make('Personas adicionales')
                     ->schema([
                         Repeater::make('personasAdicionales')
@@ -222,13 +265,30 @@ class OrdenResource extends Resource
                             ->columns(2)
                             ->defaultItems(0)
                             ->schema([
-                                Select::make('persona_id')
-                                    ->label('Persona')
-                                    ->relationship('persona', 'nombre')
-                                    ->searchable()
-                                    ->preload()
+                                // Select::make('persona_id')
+                                //     ->label('Persona')
+                                //     ->relationship('persona', 'nombre')
+                                //     ->searchable()
+                                //     ->preload()
+                                //     ->required(),
+                                TextInput::make('nombre')
+                                    ->label('Nombres')
+                                    ->maxLength(100)
+                                    ->required(),
+                                TextInput::make('apellido')
+                                    ->label('Apellido')
+                                    ->maxLength(100)
+                                    ->required(),
+                                TextInput::make('carnet')
+                                    ->label('Carnet de identidad')
+                                    ->maxLength(50)
+                                    ->required(),
+                                TextInput::make('correo')
+                                    ->label('Correo electrónico')
+                                    ->maxLength(150)
                                     ->required(),
                                 TextInput::make('funcion')
+                                    ->columnSpan(2)
                                     ->label('Función')
                                     ->maxLength(40)
                                     ->required(),
@@ -508,9 +568,9 @@ class OrdenResource extends Resource
     {
         return [
             'index' => ListOrdens::route('/'),
-            'create' => CreateOrden::route('/create'),
-            'view' => ViewOrden::route('/{record}'),
-            'edit' => EditOrden::route('/{record}/edit'),
+            // 'create' => CreateOrden::route('/create'),
+            // 'view' => ViewOrden::route('/{record}'),
+            // 'edit' => EditOrden::route('/{record}/edit'),
         ];
     }
 

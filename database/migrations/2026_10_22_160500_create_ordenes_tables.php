@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ordenes', function (Blueprint $table) {
             $table->id('orden_id');
             $table->uuid('codigo_orden')->nullable();
-            $table->string('numero', 30)->unique();
+            $table->string('numero', 30)->nullable();
 
             $table->foreignId('persona_id')
                 ->nullable()
@@ -35,6 +35,9 @@ return new class extends Migration
             $table->timestamp('fecha_registro')->useCurrent();
             $table->timestamp('fecha_efectivizacion')->nullable();
             $table->text('observaciones')->nullable();
+
+            $table->unsignedInteger('cantidad_total');
+            $table->decimal('precio_total', 12, 2)->default(0);
 
             // $table->string('firma_cliente_nombre', 200)->nullable();
             // $table->string('firma_cliente_documento', 50)->nullable();
@@ -81,6 +84,11 @@ return new class extends Migration
 
         Schema::create('orden_personas', function (Blueprint $table) {
             $table->id('orden_persona_id');
+            $table->string('nombre', 100);
+            $table->string('apellido', 100);
+            $table->string('carnet', 30);
+            $table->string('correo', 150);
+            $table->string('telefono', 30);
             $table->foreignId('orden_id')
                 ->constrained('ordenes', 'orden_id')
                 ->cascadeOnDelete();

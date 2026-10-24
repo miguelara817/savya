@@ -126,6 +126,8 @@ class PublicacionExistenciaResource extends Resource
                                 Select::make('producto_id')
                                     ->label('Producto')
                                     ->relationship('producto', 'nombre', modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true))
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nombre} - {$record->presentacion}"
+                                    )
                                     ->searchable()
                                     ->preload()
                                     ->required(),

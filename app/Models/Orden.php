@@ -23,13 +23,37 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'fecha_registro',
     'fecha_efectivizacion',
     'observaciones',
-    'firma_cliente_nombre',
-    'firma_cliente_documento',
-    'firma_cliente_archivo',
-    'firmado_en',
+    'cantidad_total',
+    'precio_total',
 ])]
 class Orden extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (Orden $orden): void {
+            if (empty($orden->orden_estado_id)) {
+                $estadoId = OrdenEstado::query()
+                    ->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value)
+                    ->value('orden_estado_id');
+
+                if ($estadoId) {
+                    $orden->orden_estado_id = $estadoId;
+                } elseif (empty($orden->orden_estado_id)) {
+                    $estadoId = OrdenEstado::query()
+                        ->where('codigo', OrdenEstadoCodigo::Borrador->value)
+                        ->value('orden_estado_id');
+
+                    if ($estadoId) {
+                        $orden->orden_estado_id = $estadoId;
+                    }
+                }
+            }
+
+            if (empty($orden->fecha_registro)) {
+                $orden->fecha_registro = now();
+            }
+        });
+    }
     use SoftDeletes;
 
     protected $table = 'ordenes';

@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'orden_id',
     'persona_id',
+    'nombre',
+    'apellido',
+    'correo',
+    'telefono',
     'funcion',
 ])]
 class OrdenPersona extends Model
