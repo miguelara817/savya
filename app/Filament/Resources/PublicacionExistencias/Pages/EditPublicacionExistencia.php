@@ -22,12 +22,12 @@ class EditPublicacionExistencia extends EditRecord
     {
         return [
             Action::make('publicar')
-                ->label('Publicar')
+                ->label('Confirmar ingreso')
                 ->icon(Heroicon::OutlinedCheckBadge)
                 ->color('success')
                 ->requiresConfirmation()
-                ->modalHeading('Publicar existencias')
-                ->modalDescription('La publicación quedará inmutable. No se modifica el stock operativo.')
+                ->modalHeading('Confirmar ingreso de inventario')
+                ->modalDescription('Se sumarán las cantidades al stock físico del producto y almacén, y se actualizará el precio para nuevas órdenes. Las reservas y los precios de órdenes existentes se conservarán.')
                 ->visible(fn (): bool => $this->getRecord()->estado === PublicacionExistencia::ESTADO_BORRADOR)
                 ->authorize(fn (): bool => Filament::auth()->user()?->can('publicar', $this->getRecord()) ?? false)
                 ->action(function (): void {
@@ -38,10 +38,10 @@ class EditPublicacionExistencia extends EditRecord
                     }
 
                     try {
-                        app(PublicacionExistenciaService::class)->publicar($this->getRecord(), $usuario);
+                        app(PublicacionExistenciaService::class)->confirmarIngreso($this->getRecord(), $usuario);
                     } catch (DomainException $exception) {
                         Notification::make()
-                            ->title('No se pudo publicar')
+                            ->title('No se pudo confirmar el ingreso')
                             ->body($exception->getMessage())
                             ->danger()
                             ->send();
@@ -50,7 +50,7 @@ class EditPublicacionExistencia extends EditRecord
                     }
 
                     Notification::make()
-                        ->title('Publicación registrada')
+                        ->title('Ingreso confirmado')
                         ->success()
                         ->send();
 

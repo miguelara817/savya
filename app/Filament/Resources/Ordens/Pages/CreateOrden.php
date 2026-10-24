@@ -12,6 +12,8 @@ class CreateOrden extends CreateRecord
 {
     protected static string $resource = OrdenResource::class;
 
+    protected ?bool $hasDatabaseTransactions = true;
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>

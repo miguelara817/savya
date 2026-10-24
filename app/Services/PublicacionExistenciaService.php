@@ -13,11 +13,23 @@ use Illuminate\Support\Facades\Gate;
 class PublicacionExistenciaService
 {
     /**
-     * Confirma el documento e inicializa cada producto y almacén una sola vez.
+     * Confirma el documento, suma las unidades al stock físico y fija el precio de venta vigente.
      */
     public function registrarCargaInicial(PublicacionExistencia $publicacion, User $usuario): void
     {
+        $this->confirmarIngreso($publicacion, $usuario);
+    }
+
+    /**
+     * Suma unidades y fija el precio de venta sin modificar las reservas ni las órdenes existentes.
+     */
+    public function confirmarIngreso(PublicacionExistencia $publicacion, User $usuario): void
+    {
         DB::transaction(function () use ($publicacion, $usuario): void {
+            $publicacion = PublicacionExistencia::query()->whereKey($publicacion->getKey())->lockForUpdate()->firstOrFail();
+
+            Gate::forUser($usuario)->authorize('publicar', $publicacion);
+
             $this->publicar($publicacion, $usuario);
 
             $existencias = $publicacion->existencias()
@@ -27,17 +39,29 @@ class PublicacionExistenciaService
                 ->get();
 
             foreach ($existencias as $existencia) {
-                $saldo = StockSaldo::query()->firstOrCreate([
-                    'producto_id' => $existencia->producto_id,
-                    'almacen_id' => $existencia->almacen_id,
-                ], [
-                    'cantidad_actual' => $existencia->cantidad,
-                    'cantidad_reservada' => 0,
-                ]);
-
-                if (! $saldo->wasRecentlyCreated) {
-                    throw new DomainException("El producto {$existencia->producto->nombre} ya tiene stock registrado en {$existencia->almacen->nombre}. La carga inicial no puede repetirse.");
+                if ($existencia->cantidad <= 0) {
+                    throw new DomainException('Las cantidades ingresadas deben ser mayores que cero.');
                 }
+
+                $saldo = StockSaldo::query()
+                    ->where('producto_id', $existencia->producto_id)
+                    ->where('almacen_id', $existencia->almacen_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($saldo === null) {
+                    $saldo = StockSaldo::query()->create([
+                        'producto_id' => $existencia->producto_id,
+                        'almacen_id' => $existencia->almacen_id,
+                        'cantidad_actual' => 0,
+                        'cantidad_reservada' => 0,
+                    ]);
+                }
+
+                $saldo->cantidad_actual += $existencia->cantidad;
+                $saldo->precio_venta = $existencia->precio_unitario;
+                $saldo->existencia_vigente_id = $existencia->getKey();
+                $saldo->save();
             }
         }, 3);
     }

@@ -60,6 +60,11 @@ class StockSaldoResource extends Resource
                 TextColumn::make('disponible')
                     ->label('Stock disponible')
                     ->numeric(),
+                TextColumn::make('precio_venta')
+                    ->label('Precio de venta vigente')
+                    ->money('BOB')
+                    ->placeholder('Sin precio vigente')
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->label('Actualizado')
                     ->dateTime()

@@ -78,13 +78,20 @@ function crearExistencia(
     ]);
 }
 
-function crearSaldo(Producto $producto, Almacen $almacen, int $actual = 10, int $reservada = 0): StockSaldo
-{
+function crearSaldo(
+    Producto $producto,
+    Almacen $almacen,
+    int $actual = 10,
+    int $reservada = 0,
+    ?Existencia $existencia = null,
+): StockSaldo {
     return StockSaldo::query()->create([
         'producto_id' => $producto->producto_id,
         'almacen_id' => $almacen->almacen_id,
         'cantidad_actual' => $actual,
         'cantidad_reservada' => $reservada,
+        'precio_venta' => $existencia?->precio_unitario,
+        'existencia_vigente_id' => $existencia?->existencia_id,
     ]);
 }
 
@@ -148,7 +155,7 @@ function escenarioSimple(int $stock = 10, int $cantidad = 5): array
     $producto = Producto::factory()->create();
     $publicacion = crearPublicacion($operador);
     $existencia = crearExistencia($publicacion, $producto, $almacen, cantidad: 100, precio: 10);
-    $saldo = crearSaldo($producto, $almacen, actual: $stock);
+    $saldo = crearSaldo($producto, $almacen, actual: $stock, existencia: $existencia);
     $orden = crearOrden($operador, $almacen, [
         ['existencia' => $existencia, 'cantidad' => $cantidad],
     ]);
@@ -476,8 +483,8 @@ test('un fallo al aprobar una orden no deja reservas ni descuentos parciales', f
     $publicacion = crearPublicacion($operador);
     $existenciaA = crearExistencia($publicacion, $productoA, $almacen);
     $existenciaB = crearExistencia($publicacion, $productoB, $almacen);
-    $saldoA = crearSaldo($productoA, $almacen, actual: 10);
-    $saldoB = crearSaldo($productoB, $almacen, actual: 1);
+    $saldoA = crearSaldo($productoA, $almacen, actual: 10, existencia: $existenciaA);
+    $saldoB = crearSaldo($productoB, $almacen, actual: 1, existencia: $existenciaB);
 
     $orden = crearOrden($operador, $almacen, [
         ['existencia' => $existenciaA, 'cantidad' => 5],
@@ -538,13 +545,22 @@ test('no se puede enviar a aprobacion una orden con publicacion en borrador', fu
     $operador = usuarioConRol('operador_ordenes');
     $almacen = Almacen::factory()->create();
     $producto = Producto::factory()->create();
-    $publicacion = crearPublicacion($operador, PublicacionExistencia::ESTADO_BORRADOR);
-    $existencia = crearExistencia($publicacion, $producto, $almacen);
+    $publicada = crearPublicacion($operador);
+    $existenciaVigente = crearExistencia($publicada, $producto, $almacen);
+    crearSaldo($producto, $almacen, existencia: $existenciaVigente);
+
+    $borrador = crearPublicacion($operador, PublicacionExistencia::ESTADO_BORRADOR);
+    $existenciaBorrador = crearExistencia($borrador, $producto, $almacen);
+
     $orden = crearOrden($operador, $almacen, [
-        ['existencia' => $existencia, 'cantidad' => 1],
+        ['existencia' => $existenciaVigente, 'cantidad' => 1],
     ]);
 
-    expect(fn () => app(OrdenService::class)->enviarAprobacion($orden, $operador))
+    $linea = $orden->productos()->sole();
+    $linea->existencia_id = $existenciaBorrador->existencia_id;
+    $linea->saveQuietly();
+
+    expect(fn () => app(OrdenService::class)->enviarAprobacion($orden->fresh(), $operador))
         ->toThrow(DomainException::class);
 
     expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Borrador->value);

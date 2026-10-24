@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'almacen_id',
     'cantidad_actual',
     'cantidad_reservada',
+    'precio_venta',
+    'existencia_vigente_id',
 ])]
 class StockSaldo extends Model
 {
@@ -29,6 +31,7 @@ class StockSaldo extends Model
         return [
             'cantidad_actual' => 'integer',
             'cantidad_reservada' => 'integer',
+            'precio_venta' => 'decimal:2',
         ];
     }
 
@@ -58,5 +61,13 @@ class StockSaldo extends Model
     public function almacen(): BelongsTo
     {
         return $this->belongsTo(Almacen::class, 'almacen_id');
+    }
+
+    /**
+     * @return BelongsTo<Existencia, $this>
+     */
+    public function existenciaVigente(): BelongsTo
+    {
+        return $this->belongsTo(Existencia::class, 'existencia_vigente_id');
     }
 }

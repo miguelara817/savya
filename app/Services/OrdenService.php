@@ -246,15 +246,6 @@ class OrdenService
             throw new DomainException('La orden no puede tener productos duplicados.');
         }
 
-        $publicaciones = $productos
-            ->map(fn (OrdenProducto $producto): ?int => $producto->existencia?->publicacion_id)
-            ->filter()
-            ->unique();
-
-        if ($publicaciones->count() > 1) {
-            throw new DomainException('Todas las líneas de la orden deben pertenecer a una misma publicación de existencias.');
-        }
-
         foreach ($productos as $producto) {
             if ($producto->cantidad_solicitada <= 0) {
                 throw new DomainException('Todas las cantidades solicitadas deben ser mayores que cero.');

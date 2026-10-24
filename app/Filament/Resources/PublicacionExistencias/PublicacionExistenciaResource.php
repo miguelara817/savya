@@ -42,11 +42,11 @@ class PublicacionExistenciaResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'numero';
 
-    protected static ?string $modelLabel = 'Existencias';
+    protected static ?string $modelLabel = 'ingreso de inventario';
 
-    protected static ?string $pluralModelLabel = 'Existencias';
+    protected static ?string $pluralModelLabel = 'ingresos de inventario';
 
-    protected static ?string $navigationLabel = 'Cargas iniciales';
+    protected static ?string $navigationLabel = 'Ingresos de inventario';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
@@ -69,7 +69,7 @@ class PublicacionExistenciaResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Datos de la carga inicial')
+                Section::make('Datos del ingreso')
                     ->columns(2)
                     ->schema([
                         TextInput::make('numero')
@@ -99,7 +99,7 @@ class PublicacionExistenciaResource extends Resource
                             ->columnSpanFull(),
                     ]),
                 Section::make('Existencias')
-                    ->description('Guarda un borrador y confirma la carga para inicializar el stock. Cada producto y almacén admite una sola carga inicial.')
+                    ->description('Al confirmar, las cantidades se suman al stock físico del producto y almacén (o crean el saldo si no existe). El precio de venta indicado se aplica a todo el disponible para nuevas órdenes; las órdenes ya registradas conservan su precio.')
                     ->schema([
                         Repeater::make('existencias')
                             ->label('Items de existencias')
@@ -114,7 +114,7 @@ class PublicacionExistenciaResource extends Resource
                                     $clave = ($linea['producto_id'] ?? '').':'.($linea['almacen_id'] ?? '');
 
                                     if (isset($combinaciones[$clave])) {
-                                        $fail('No se puede repetir el mismo producto y almacén en una carga.');
+                                        $fail('No se puede repetir el mismo producto y almacén en un ingreso.');
 
                                         return;
                                     }
@@ -138,12 +138,14 @@ class PublicacionExistenciaResource extends Resource
                                 TextInput::make('cantidad')
                                     ->label('Cantidad')
                                     ->integer()
-                                    ->minValue(0)
+                                    ->minValue(1)
                                     ->required(),
                                 TextInput::make('precio_unitario')
-                                    ->label('Precio unitario')
+                                    ->label('Precio de venta unitario')
                                     ->numeric()
                                     ->prefix('Bs')
+                                    ->step('0.01')
+                                    ->rule('decimal:0,2')
                                     ->minValue(0)
                                     ->required(),
                             ]),
@@ -217,17 +219,17 @@ class PublicacionExistenciaResource extends Resource
                     DeleteAction::make()
                         ->authorize(fn (PublicacionExistencia $record): bool => self::canDelete($record)),
                     Action::make('publicar')
-                        ->label('Confirmar carga inicial')
+                        ->label('Confirmar ingreso')
                         ->icon(Heroicon::OutlinedCheckBadge)
                         ->color('success')
                         ->requiresConfirmation()
-                        ->modalHeading('Confirmar carga inicial')
-                        ->modalDescription('Se creará el stock físico con las cantidades registradas y reserva cero. La carga quedará inmutable. Si algún producto ya tiene saldo en ese almacén, no se aplicará ninguna línea.')
+                        ->modalHeading('Confirmar ingreso de inventario')
+                        ->modalDescription('Se sumarán las cantidades al stock físico del producto y almacén, y se actualizará el precio para nuevas órdenes. Las reservas y los precios de órdenes existentes se conservarán. El documento quedará inmutable y, si alguna línea falla, no se aplicará ninguna.')
                         ->authorize('publicar')
                         ->visible(fn (PublicacionExistencia $record): bool => $record->estado === PublicacionExistencia::ESTADO_BORRADOR)
                         ->action(function (PublicacionExistencia $record): void {
                             try {
-                                app(PublicacionExistenciaService::class)->registrarCargaInicial($record, self::usuarioActual());
+                                app(PublicacionExistenciaService::class)->confirmarIngreso($record, self::usuarioActual());
                             } catch (DomainException $exception) {
                                 self::notificarError($exception);
 
@@ -235,8 +237,8 @@ class PublicacionExistenciaResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Carga inicial confirmada')
-                                ->body('El stock ya está disponible para consulta y reserva.')
+                                ->title('Ingreso confirmado')
+                                ->body('El stock y el precio de venta vigente ya están actualizados.')
                                 ->success()
                                 ->send();
                         }),

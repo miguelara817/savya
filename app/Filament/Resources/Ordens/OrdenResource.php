@@ -8,11 +8,12 @@ use App\Filament\Resources\Ordens\Pages\EditOrden;
 use App\Filament\Resources\Ordens\Pages\ListOrdens;
 use App\Filament\Resources\Ordens\Pages\ViewOrden;
 use App\Filament\Resources\SalidaAlmacens\SalidaAlmacenResource;
-use App\Models\Existencia;
 use App\Models\Orden;
 use App\Models\OrdenEstado;
 use App\Models\Producto;
+use App\Models\PublicacionExistencia;
 use App\Models\SalidaAlmacen;
+use App\Models\StockSaldo;
 use App\Models\User;
 use App\Services\OrdenService;
 use App\Services\SalidaAlmacenService;
@@ -111,7 +112,7 @@ class OrdenResource extends Resource
                             ->email()
                             ->maxLength(150),
                     ]),
-                
+
                 Section::make('Productos solicitados')
                     // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
                     ->schema([
@@ -147,41 +148,30 @@ class OrdenResource extends Resource
                             ->defaultItems(0)
                             ->schema([
                                 Select::make('existencia_id')
-                                    ->label('Existencia publicada')
+                                    ->label('Producto con precio vigente')
                                     ->options(function (Get $get): array {
-                                        // Obtener el almacén seleccionado en el formulario principal
                                         $almacenId = $get('../../almacen_id');
 
                                         if (! $almacenId) {
                                             return [];
                                         }
 
-                                        return Existencia::query()
-                                            ->with(['producto', 'almacen', 'publicacion'])
+                                        return StockSaldo::query()
+                                            ->with(['producto', 'existenciaVigente.publicacion'])
                                             ->where('almacen_id', $almacenId)
-                                            ->whereHas('publicacion', fn ($query) => $query
-                                                ->where('estado', 'PUBLICADA')
-                                                ->where('publicada_en', function ($subquery) {
-                                                    $subquery->from('publicaciones_existencias')
-                                                        ->selectRaw('MAX(publicada_en)');
-                                                })
-                                            )
-                                            ->orderByDesc('existencia_id')
+                                            ->whereNotNull('precio_venta')
+                                            ->whereNotNull('existencia_vigente_id')
+                                            ->whereHas('producto', fn (Builder $query): Builder => $query->where('is_active', true))
+                                            ->whereHas('existenciaVigente.publicacion', fn (Builder $query): Builder => $query
+                                                ->where('estado', PublicacionExistencia::ESTADO_PUBLICADA))
+                                            ->orderBy('producto_id')
                                             ->get()
-                                            // ->mapWithKeys(fn (Existencia $existencia): array => [
-                                            //     $existencia->existencia_id => sprintf(
-                                            //         '%s — %s (%s, disp. %d)',
-                                            //         $existencia->producto?->nombre ?? 'Producto',
-                                            //         $existencia->almacen?->nombre ?? 'Almacén',
-                                            //         $existencia->publicacion?->estado ?? 'SIN PUBLICACIÓN',
-                                            //         $existencia->cantidad,
-                                            //     ),
-                                            // ])
-                                            ->mapWithKeys(fn (Existencia $existencia): array => [
-                                                $existencia->existencia_id => sprintf(
-                                                    '%s — %s',
-                                                    $existencia->producto?->nombre ?? 'Producto',
-                                                    $existencia->almacen?->nombre ?? 'Almacén'
+                                            ->mapWithKeys(fn (StockSaldo $saldo): array => [
+                                                $saldo->existencia_vigente_id => sprintf(
+                                                    '%s — Bs %s (disp. %d)',
+                                                    $saldo->producto?->nombre ?? 'Producto',
+                                                    number_format((float) $saldo->precio_venta, 2),
+                                                    $saldo->disponible,
                                                 ),
                                             ])
                                             ->all();
@@ -189,14 +179,14 @@ class OrdenResource extends Resource
                                     ->searchable()
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(function (?int $state, Get $get, Set $set): void {
-                                        $existencia = $state
-                                            ? Existencia::query()->find($state)
+                                    ->afterStateUpdated(function (?int $state, Set $set): void {
+                                        $saldo = $state
+                                            ? StockSaldo::query()->where('existencia_vigente_id', $state)->first()
                                             : null;
 
-                                        if ($existencia) {
-                                            $set('producto_id', $existencia->producto_id);
-                                            $set('precio_unitario', $existencia->precio_unitario);
+                                        if ($saldo) {
+                                            $set('producto_id', $saldo->producto_id);
+                                            $set('precio_unitario', $saldo->precio_venta);
                                         } else {
                                             $set('producto_id', null);
                                             $set('precio_unitario', null);

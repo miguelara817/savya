@@ -115,7 +115,7 @@ test('la carga queda en borrador hasta confirmar e inicializa stock por almacen'
 
     Livewire::test(ListPublicacionExistencias::class)
         ->callAction(TestAction::make('publicar')->table($carga))
-        ->assertNotified('Carga inicial confirmada');
+        ->assertNotified('Ingreso confirmado');
 
     expect($carga->fresh()->estado)->toBe(PublicacionExistencia::ESTADO_PUBLICADA);
     $this->assertDatabaseHas('stock_saldos', [
@@ -155,20 +155,20 @@ test('una carga conflictiva revierte todas las lineas y conserva el stock y las 
     $saldo = StockSaldo::query()->create([
         'producto_id' => $productos[1]->getKey(), 'almacen_id' => $almacen->getKey(),
         'cantidad_actual' => 15, 'cantidad_reservada' => 4,
+        'precio_venta' => 10,
     ]);
     $carga = cargaInicialInventario($usuario, $productos->map(fn (Producto $producto): array => [
         'producto_id' => $producto->getKey(), 'almacen_id' => $almacen->getKey(),
         'cantidad' => 100, 'precio_unitario' => 10,
     ])->all());
 
-    expect(fn () => app(PublicacionExistenciaService::class)->registrarCargaInicial($carga, $usuario))
-        ->toThrow(DomainException::class, 'ya tiene stock registrado');
+    app(PublicacionExistenciaService::class)->registrarCargaInicial($carga, $usuario);
 
-    $this->assertDatabaseCount('stock_saldos', 1);
-    expect($saldo->fresh()->cantidad_actual)->toBe(15)
+    $this->assertDatabaseCount('stock_saldos', 2);
+    expect($saldo->fresh()->cantidad_actual)->toBe(115)
         ->and($saldo->fresh()->cantidad_reservada)->toBe(4)
-        ->and($carga->fresh()->estado)->toBe(PublicacionExistencia::ESTADO_BORRADOR)
-        ->and($carga->fresh()->publicada_en)->toBeNull();
+        ->and($carga->fresh()->estado)->toBe(PublicacionExistencia::ESTADO_PUBLICADA)
+        ->and($saldo->fresh()->precio_venta)->toBe('10.00');
 });
 
 test('confirmar la misma carga dos veces no duplica el stock', function (): void {

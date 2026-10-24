@@ -17,7 +17,7 @@ class ListPublicacionExistencias extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Nueva carga inicial')
+                ->label('Nuevo ingreso')
                 ->databaseTransaction()
                 ->mutateDataUsing(function (array $data): array {
                     $data['numero'] = DocumentoNumero::generar('PUB');
