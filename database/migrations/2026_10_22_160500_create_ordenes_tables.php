@@ -89,7 +89,7 @@ return new class extends Migration
             $table->string('carnet', 30);
             $table->string('correo', 150);
             $table->string('telefono', 30);
-            $table->foreignId('orden_id')
+            $table->foreignId('orden_id')->nullable()
                 ->constrained('ordenes', 'orden_id')
                 ->cascadeOnDelete();
             $table->foreignId('persona_id')

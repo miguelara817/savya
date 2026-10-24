@@ -287,6 +287,11 @@ class OrdenResource extends Resource
                                     ->label('Correo electrónico')
                                     ->maxLength(150)
                                     ->required(),
+                                TextInput::make('telefono')
+                                    ->label('Telefono')
+                                    ->maxLength(50)
+                                    ->integer()
+                                    ->required(),
                                 TextInput::make('funcion')
                                     ->columnSpan(2)
                                     ->label('Función')

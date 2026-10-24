@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'persona_id',
     'nombre',
     'apellido',
+    'carnet',
     'correo',
     'telefono',
     'funcion',
