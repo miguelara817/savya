@@ -2,8 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\EmailAuthentication;
+use App\Notifications\VerifyLoginEmail;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -13,6 +14,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -20,10 +22,8 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Facades\FilamentView;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -36,9 +36,9 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             // ->profile()
-            // ->multiFactorAuthentication([
-            //     AppAuthentication::make(),
-            // ], isRequired:true)
+            ->multiFactorAuthentication([
+                EmailAuthentication::make()->codeExpiryMinutes(4)
+            ], isRequired: true)
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
             ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))
