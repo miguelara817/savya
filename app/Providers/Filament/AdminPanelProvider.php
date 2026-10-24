@@ -37,7 +37,9 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             // ->profile()
             ->multiFactorAuthentication([
-                EmailAuthentication::make()->codeExpiryMinutes(4)
+                EmailAuthentication::make()
+                    ->codeExpiryMinutes(4)
+                    ->codeNotification(VerifyLoginEmail::class),
             ], isRequired: true)
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))

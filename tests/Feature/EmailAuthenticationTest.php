@@ -93,6 +93,27 @@ it('delivers the login email immediately even when the default queue uses the da
     $this->assertGuest();
 });
 
+it('accepts the emailed code when the challenge is stored in the database cache', function (): void {
+    config(['cache.default' => 'database']);
+    Notification::fake();
+    $user = User::factory()->create();
+    $login = Livewire::test(Login::class)
+        ->fillForm(['email' => $user->email, 'password' => 'password'])
+        ->call('authenticate')
+        ->assertHasNoFormErrors()
+        ->assertNoRedirect();
+    $this->assertGuest();
+    Notification::assertSentTo($user, VerifyLoginEmail::class);
+    $notification = Notification::sent($user, VerifyLoginEmail::class)->sole();
+
+    $login->set('data.multiFactor.email_code.code', $notification->code)
+        ->call('authenticate')
+        ->assertHasNoFormErrors()
+        ->assertRedirect(Filament::getUrl());
+
+    $this->assertAuthenticatedAs($user);
+});
+
 it('keeps partial codes local and accepts the complete code only after confirmation', function (): void {
     Notification::fake();
     $user = User::factory()->create();
