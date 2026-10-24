@@ -35,7 +35,8 @@ class RolesPermisosSeeder extends Seeder
             'ViewAny:EntregaDetalle', 'View:EntregaDetalle', 'Create:EntregaDetalle', 'Update:EntregaDetalle', 'Delete:EntregaDetalle',
             'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
             'ViewAny:MovimientoHistorialEstado', 'View:MovimientoHistorialEstado',
-            'ViewAny:Producto', 'View:Producto', 'ViewAny:Almacen', 'View:Almacen',
+            'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update:Producto', 'Delete:Producto',
+            'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             'ViewAny:Persona', 'View:Persona', 'Create:Persona', 'Update:Persona',
         ])->unique();
 
@@ -53,10 +54,11 @@ class RolesPermisosSeeder extends Seeder
                 'ViewAny:PublicacionExistencia', 'View:PublicacionExistencia', 'Create:PublicacionExistencia', 'Update:PublicacionExistencia', 'Delete:PublicacionExistencia',
                 'Publicar:PublicacionExistencia',
                 'ViewAny:Existencia', 'View:Existencia', 'Create:Existencia', 'Update:Existencia', 'Delete:Existencia',
-                // 'ViewAny:StockSaldo', 'View:StockSaldo', 'Create:StockSaldo', 'Update:StockSaldo',
-                // 'ViewAny:ReservaStock', 'View:ReservaStock',
+                'ViewAny:StockSaldo', 'View:StockSaldo',
+                'ViewAny:ReservaStock', 'View:ReservaStock',
                 // 'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
-                'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update.Producto', 'Delete:Producto', 'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen'
+                'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update:Producto', 'Delete:Producto',
+                'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             ],
             'cliente' => [
                 'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden',

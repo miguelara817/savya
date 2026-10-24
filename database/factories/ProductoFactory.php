@@ -24,7 +24,7 @@ class ProductoFactory extends Factory
             'nombre' => Str::title($nombre),
             'slug' => Str::slug($nombre),
             'codigo' => fake()->unique()->bothify('PRD-####'),
-            'descripcion' => fake()->sentence(),
+            'caracteristicas' => fake()->sentence(),
             'unidad_medida' => fake()->randomElement(['unidad', 'caja', 'bolsa', 'litro', 'kilo']),
             'is_active' => true,
         ];

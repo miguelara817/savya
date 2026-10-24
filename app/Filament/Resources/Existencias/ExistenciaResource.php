@@ -7,9 +7,6 @@ use App\Filament\Resources\Existencias\Pages\EditExistencia;
 use App\Filament\Resources\Existencias\Pages\ListExistencias;
 use App\Models\Existencia;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -23,7 +20,7 @@ class ExistenciaResource extends Resource
 {
     protected static ?string $model = Existencia::class;
 
-    protected static ?string $slug = 'existencias';
+    protected static ?string $slug = 'detalle-existencias';
 
     protected static ?string $modelLabel = 'existencia';
 
@@ -118,14 +115,8 @@ class ExistenciaResource extends Resource
                     ->label('Almacén')
                     ->relationship('almacen', 'nombre'),
             ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->recordActions([])
+            ->toolbarActions([]);
     }
 
     public static function getPages(): array

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'marca',
     'proveedor',
     'presentacion',
-    'descripcion',
+    'caracteristicas',
     'unidad_medida',
     'is_active',
 ])]

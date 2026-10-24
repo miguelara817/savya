@@ -22,11 +22,13 @@ class StockSaldoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'saldos de stock';
 
+    protected static ?string $navigationLabel = 'Stock por almacén';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalculator;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Almacenes y productos';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {
@@ -48,15 +50,15 @@ class StockSaldoResource extends Resource
                     ->label('Almacén')
                     ->searchable(),
                 TextColumn::make('cantidad_actual')
-                    ->label('Cantidad actual')
+                    ->label('Stock físico')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('cantidad_reservada')
-                    ->label('Cantidad reservada')
+                    ->label('Stock reservado')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('disponible')
-                    ->label('Disponible')
+                    ->label('Stock disponible')
                     ->numeric(),
                 TextColumn::make('updated_at')
                     ->label('Actualizado')

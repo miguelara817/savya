@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Existencia;
 use App\Models\PublicacionExistencia;
+use App\Models\StockSaldo;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,36 @@ use Illuminate\Support\Facades\Gate;
 
 class PublicacionExistenciaService
 {
+    /**
+     * Confirma el documento e inicializa cada producto y almacén una sola vez.
+     */
+    public function registrarCargaInicial(PublicacionExistencia $publicacion, User $usuario): void
+    {
+        DB::transaction(function () use ($publicacion, $usuario): void {
+            $this->publicar($publicacion, $usuario);
+
+            $existencias = $publicacion->existencias()
+                ->with(['producto', 'almacen'])
+                ->orderBy('producto_id')
+                ->orderBy('almacen_id')
+                ->get();
+
+            foreach ($existencias as $existencia) {
+                $saldo = StockSaldo::query()->firstOrCreate([
+                    'producto_id' => $existencia->producto_id,
+                    'almacen_id' => $existencia->almacen_id,
+                ], [
+                    'cantidad_actual' => $existencia->cantidad,
+                    'cantidad_reservada' => 0,
+                ]);
+
+                if (! $saldo->wasRecentlyCreated) {
+                    throw new DomainException("El producto {$existencia->producto->nombre} ya tiene stock registrado en {$existencia->almacen->nombre}. La carga inicial no puede repetirse.");
+                }
+            }
+        }, 3);
+    }
+
     /**
      * Publica una fotografía histórica de existencias sin modificar el stock operativo.
      */

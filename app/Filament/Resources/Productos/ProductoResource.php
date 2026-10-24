@@ -108,8 +108,8 @@ class ProductoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('unidad_medida')
                     ->label('Unidad de medida'),
-                TextColumn::make('descripcion')
-                    ->label('Descripción')
+                TextColumn::make('caracteristicas')
+                    ->label('Características')
                     ->limit(50)
                     ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_active')
