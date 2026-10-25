@@ -58,7 +58,7 @@ function crearPublicacion(
 ): PublicacionExistencia {
     return PublicacionExistencia::query()->create([
         'numero' => 'PUB-'.Str::upper(Str::random(8)),
-        'fecha_publicacion' => now(),
+        'fecha_ingreso' => now(),
         'responsable_user_id' => $responsable->getKey(),
         'estado' => $estado,
         'publicada_en' => $estado === PublicacionExistencia::ESTADO_PUBLICADA ? now() : null,
@@ -471,6 +471,12 @@ test('el encargado de almacen puede entregar una orden verificada y liberar sus 
         ->and($reserva->fresh()->estado)->toBe(ReservaStock::ESTADO_LIBERADA)
         ->and($reserva->fresh()->liberada_en->equalTo($entrega->fecha_entrega))->toBeTrue()
         ->and(Movimiento::query()->count())->toBe(1);
+});
+
+test('el permiso para entregar ordenes autoriza crear la entrega del flujo', function (): void {
+    $encargado = usuarioConRol('encargado_almacen');
+
+    expect($encargado->can('create', Entrega::class))->toBeTrue();
 });
 
 test('un cliente no puede confirmar la entrega de una orden verificada', function (): void {

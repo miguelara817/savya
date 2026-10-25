@@ -24,7 +24,8 @@ class EntregaPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:Entrega');
+        return $authUser->can('Create:Entrega')
+            || $authUser->can('Entregar:Orden');
     }
 
     public function update(AuthUser $authUser, Entrega $entrega): bool

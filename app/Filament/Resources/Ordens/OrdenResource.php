@@ -782,7 +782,7 @@ class OrdenResource extends Resource
         return [
             'index' => ListOrdens::route('/'),
             // 'create' => CreateOrden::route('/create'),
-            // 'view' => ViewOrden::route('/{record}'),
+            'view' => ViewOrden::route('/{record}'),
             // 'edit' => EditOrden::route('/{record}/edit'),
         ];
     }

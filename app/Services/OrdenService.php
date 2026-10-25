@@ -228,7 +228,6 @@ class OrdenService
                 OrdenEstadoCodigo::Completada,
                 OrdenEstadoCodigo::Rechazada,
                 OrdenEstadoCodigo::Cancelada,
-                OrdenEstadoCodigo::Anulado,
             )) {
                 throw new DomainException('La orden ya se encuentra en un estado final y no puede cancelarse.');
             }
@@ -264,7 +263,6 @@ class OrdenService
             OrdenEstadoCodigo::Completada,
             OrdenEstadoCodigo::Rechazada,
             OrdenEstadoCodigo::Cancelada,
-            OrdenEstadoCodigo::Anulado,
         )) {
             return;
         }
