@@ -15,7 +15,7 @@ class OrdenEstadoSeeder extends Seeder
         $estados = [
             ['codigo' => 'BORRADOR', 'nombre' => 'Borrador', 'descripcion' => 'Orden en edición, aún no enviada a aprobación.'],
             ['codigo' => 'PENDIENTE_APROBACION', 'nombre' => 'Pendiente de aprobación', 'descripcion' => 'Orden completa, a la espera de revisión.'],
-            ['codigo' => 'APROBADA', 'nombre' => 'Aprobada', 'descripcion' => 'Orden aprobada con stock reservado.'],
+            ['codigo' => 'APROBADA', 'nombre' => 'Aprobada, pago pendiente', 'descripcion' => 'Orden aprobada con stock reservado.'],
             ['codigo' => 'PAGO_PENDIENTE', 'nombre' => 'Pendiente de pago', 'descripcion' => 'Orden aprobada, pendiente de pago'],
             ['codigo' => 'PAGADO', 'nombre' => 'Pagado', 'descripcion' => 'El cliente registró el pago y adjuntó el comprobante.'],
             ['codigo' => 'VERIFICADO', 'nombre' => 'Pago verificado', 'descripcion' => 'El encargado de ventas verificó el pago.'],

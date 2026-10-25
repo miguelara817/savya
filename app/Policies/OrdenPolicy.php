@@ -81,7 +81,7 @@ class OrdenPolicy
     {
         return $authUser->can('View:Orden')
             && $authUser->can('VerMotivoRechazo:Orden')
-            && $orden->estaEnEstado(OrdenEstadoCodigo::Rechazada)
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Rechazada, OrdenEstadoCodigo::Cancelada)
             && filled($orden->motivo_rechazo)
             && (! $authUser->hasRole('cliente') || (int) $orden->solicitante_user_id === (int) $authUser->getAuthIdentifier());
     }
@@ -89,12 +89,7 @@ class OrdenPolicy
     public function cancelar(AuthUser $authUser, Orden $orden): bool
     {
         return $authUser->can('Cancelar:Orden')
-            && ! $orden->estaEnEstado(
-                OrdenEstadoCodigo::Completada,
-                OrdenEstadoCodigo::Rechazada,
-                OrdenEstadoCodigo::Cancelada,
-                OrdenEstadoCodigo::Anulado,
-            );
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Aprobada);
     }
 
     public function deleteAny(AuthUser $authUser): bool

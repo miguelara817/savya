@@ -230,6 +230,11 @@ class OrdenService
 
             $this->liberarReservasPendientes($orden);
 
+            if ($orden->estaEnEstado(OrdenEstadoCodigo::Aprobada)) {
+                $orden->motivo_rechazo = $motivo;
+                $orden->save();
+            }
+
             $observacion = $motivo
                 ? "Orden cancelada. Motivo: {$motivo}"
                 : 'Orden cancelada y reservas pendientes liberadas.';

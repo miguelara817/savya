@@ -386,9 +386,15 @@ class OrdenResource extends Resource
                     ->label('Estado')
                     ->badge(),
                 TextColumn::make('productos_count')
-                    ->label('Líneas')
+                    ->label('Productos')
                     ->counts('productos')
                     ->numeric(),
+                TextColumn::make('cantidad_total')
+                    ->label('Cantidad solcitada')
+                    ->numeric(),
+                TextColumn::make('precio_total')
+                    ->label('Precio total [Bs]')
+                    ->formatStateUsing(fn ($state) => 'Bs '.number_format((float) $state, 2, ',', '.')),
                 TextColumn::make('fecha_registro')
                     ->label('Fecha de registro')
                     ->dateTime()
@@ -410,22 +416,22 @@ class OrdenResource extends Resource
                     ->label('Observaciones')
                     ->limit(50)
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firma_cliente_nombre')
-                    ->label('Firmante')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firma_cliente_documento')
-                    ->label('Documento del firmante')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firma_cliente_archivo')
-                    ->label('Archivo de firma')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firmado_en')
-                    ->label('Firmado en')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firma_cliente_nombre')
+                //     ->label('Firmante')
+                //     ->searchable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firma_cliente_documento')
+                //     ->label('Documento del firmante')
+                //     ->searchable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firma_cliente_archivo')
+                //     ->label('Archivo de firma')
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firmado_en')
+                //     ->label('Firmado en')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
@@ -458,16 +464,16 @@ class OrdenResource extends Resource
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    Action::make('verMotivoRechazo')
+                    Action::make('verMotivo')
                         ->label('Ver motivo')
                         ->icon(Heroicon::OutlinedEye)
                         ->color('gray')
-                        ->modalHeading('Motivo del rechazo')
+                        ->modalHeading('Motivo registrado')
                         ->modalSubmitAction(false)
                         ->modalCancelActionLabel('Cerrar')
-                        ->authorize('verMotivoRechazo')
-                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Rechazada)
-                            && filled($record->motivo_rechazo))
+                        ->authorize(fn (Orden $record): bool => auth()->user()?->can('verMotivoRechazo', $record) ?? false)
+                        ->visible(fn (Orden $record): bool => filled($record->motivo_rechazo)
+                            && $record->estaEnEstado(OrdenEstadoCodigo::Rechazada, OrdenEstadoCodigo::Cancelada))
                         ->schema([
                             Placeholder::make('motivo_rechazo')
                                 ->label('Motivo registrado por ventas')
@@ -683,26 +689,21 @@ class OrdenResource extends Resource
                                 ->send();
                         }),
                     Action::make('cancelar')
-                        ->label('Cancelar orden')
-                        ->icon(Heroicon::OutlinedLockClosed)
+                        ->label('Anular orden')
+                        ->icon(Heroicon::OutlinedXCircle)
                         ->color('danger')
                         ->schema([
                             Textarea::make('motivo')
-                                ->label('Motivo de la cancelación')
+                                ->label('Motivo de la anulación')
                                 ->required()
                                 ->rows(3)
                                 ->maxLength(1000),
                         ])
-                        ->modalHeading('Cancelar orden')
-                        ->modalDescription('Se liberarán únicamente las reservas pendientes. Las cantidades ya despachadas no se revertirán.')
-                        ->modalSubmitActionLabel('Cancelar orden')
+                        ->modalHeading('Anular orden aprobada')
+                        ->modalDescription('Se liberarán las reservas pendientes.')
+                        ->modalSubmitActionLabel('Anular orden')
                         ->authorize('cancelar')
-                        ->visible(fn (Orden $record): bool => ! $record->estaEnEstado(
-                            OrdenEstadoCodigo::Completada,
-                            OrdenEstadoCodigo::Rechazada,
-                            OrdenEstadoCodigo::Cancelada,
-                            OrdenEstadoCodigo::Anulado,
-                        ))
+                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Aprobada))
                         ->action(function (Orden $record, array $data): void {
                             try {
                                 app(OrdenService::class)->cancelar($record, self::usuarioActual(), $data['motivo']);
@@ -713,7 +714,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden cancelada')
+                                ->title('Orden anulada')
                                 ->success()
                                 ->send();
                         }),

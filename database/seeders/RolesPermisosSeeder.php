@@ -75,7 +75,7 @@ class RolesPermisosSeeder extends Seeder
             //     'ViewAny:Persona', 'View:Persona', 'Create:Persona', 'Update:Persona',
             // ],
             'encargado_ventas' => [
-                'ViewAny:Orden', 'View:Orden', 'Aprobar:Orden', 'Rechazar:Orden', 'VerificarPago:Orden', 'VerMotivoRechazo:Orden',
+                'ViewAny:Orden', 'View:Orden', 'Aprobar:Orden', 'Rechazar:Orden', 'Cancelar:Orden', 'VerificarPago:Orden', 'VerMotivoRechazo:Orden',
                 'ViewAny:OrdenProducto', 'View:OrdenProducto',
                 'ViewAny:OrdenHistorialEstado', 'View:OrdenHistorialEstado',
                 'ViewAny:PublicacionExistencia', 'View:PublicacionExistencia',

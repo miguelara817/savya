@@ -522,6 +522,42 @@ test('cancelar libera solo las reservas pendientes y conserva lo ya despachado',
         ->and(ReservaStock::query()->firstOrFail()->estado)->toBe(ReservaStock::ESTADO_LIBERADA);
 });
 
+test('encargado de ventas puede anular una orden aprobada registrando el motivo', function (): void {
+    $escenario = escenarioSimple(stock: 20, cantidad: 10);
+    $ventas = usuarioConRol('encargado_ventas');
+    $orden = ordenAprobada($escenario);
+
+    app(OrdenService::class)->cancelar($orden, $ventas, 'El cliente decidió no completar el pedido.');
+
+    $ordenActualizada = $orden->fresh();
+
+    expect($ordenActualizada->estadoCodigo())->toBe(OrdenEstadoCodigo::Cancelada->value)
+        ->and($ordenActualizada->motivo_rechazo)->toBe('El cliente decidió no completar el pedido.')
+        ->and($escenario['saldo']->fresh()->cantidad_reservada)->toBe(0)
+        ->and($ordenActualizada->historialEstados()->where('observaciones', 'Orden cancelada. Motivo: El cliente decidió no completar el pedido.')->exists())->toBeTrue();
+});
+
+test('el cliente solicitante puede consultar el motivo de anulacion de su orden', function (): void {
+    $escenario = escenarioSimple(stock: 20, cantidad: 10);
+    $cliente = usuarioConRol('cliente');
+    $orden = ordenAprobada($escenario);
+    $orden->forceFill(['solicitante_user_id' => $cliente->getKey()])->save();
+    app(OrdenService::class)->cancelar($orden->fresh(), $escenario['aprobador'], 'El cliente decidió no completar el pedido.');
+
+    expect($cliente->can('verMotivoRechazo', $orden->fresh()))->toBeTrue();
+});
+
+test('solo encargado de ventas puede cancelar ordenes aprobadas', function (): void {
+    $escenario = escenarioSimple(stock: 20, cantidad: 10);
+    $orden = ordenAprobada($escenario);
+
+    expect(fn () => app(OrdenService::class)->cancelar($orden, $escenario['operador'], 'Cancelación solicitada.'))
+        ->toThrow(AuthorizationException::class);
+
+    expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Aprobada->value)
+        ->and($orden->fresh()->motivo_rechazo)->toBeNull();
+});
+
 test('un fallo al aprobar una orden no deja reservas ni descuentos parciales', function (): void {
     $operador = usuarioConRol('operador_ordenes');
     $aprobador = usuarioConRol('aprobador');
