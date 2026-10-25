@@ -2,9 +2,11 @@
 
 use App\Models\User;
 use App\Notifications\VerifyLoginEmail;
+use Filament\Auth\Pages\EditProfile;
 use Filament\Auth\Pages\Login;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
@@ -39,6 +41,29 @@ it('requires an emailed code on every login including users who have not enabled
     }
 
     Notification::assertSentToTimes($user, VerifyLoginEmail::class, 2);
+});
+
+it('allows changing profile credentials without disabling email MFA', function (): void {
+    $user = User::factory()->create(['has_email_authentication' => true]);
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->fillForm([
+            'name' => $user->name,
+            'email' => $user->email,
+            'password' => 'new-strong-password-123',
+            'passwordConfirmation' => 'new-strong-password-123',
+            'currentPassword' => 'password',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(Hash::check('new-strong-password-123', $user->fresh()->password))->toBeTrue()
+        ->and($user->fresh()->hasEmailAuthentication())->toBeTrue();
+
+    $user->toggleEmailAuthentication(false);
+
+    expect($user->fresh()->hasEmailAuthentication())->toBeTrue();
 });
 
 it('rejects incorrect and expired email codes', function (bool $expired): void {

@@ -7,6 +7,7 @@ use App\Filament\Resources\PersonaAutorizadas\Pages\EditPersonaAutorizada;
 use App\Filament\Resources\PersonaAutorizadas\Pages\ListPersonaAutorizadas;
 use App\Models\PersonaAutorizada;
 use App\Models\User;
+use App\Services\CorreoService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -130,9 +131,20 @@ class PersonaAutorizadaResource extends Resource
                             'user_id' => $usuario->id,
                         ]);
 
+                        app(CorreoService::class)->enviar(
+                            destinatarios: [$record->correo],
+                            asunto: 'Tus credenciales de acceso',
+                            cuerpo: sprintf(
+                                '<h2>Tus credenciales de acceso</h2><p>Hola %s,</p><p>Se creó o actualizó tu usuario para ingresar al sistema.</p><p><strong>Usuario:</strong> %s<br><strong>Contraseña:</strong> %s</p><p>Por seguridad, cambia tu contraseña después de iniciar sesión.</p>',
+                                e($record->nombreCompleto),
+                                e($data['username'] ?: $record->correo),
+                                e($data['password']),
+                            ),
+                        );
+
                         Notification::make()
                             ->title('Credenciales creadas/actualizadas')
-                            ->body('Se creó o actualizó el usuario con rol Cliente.')
+                            ->body('Se creó o actualizó el usuario y se enviaron las credenciales al correo de la persona autorizada.')
                             ->success()
                             ->send();
                     }),

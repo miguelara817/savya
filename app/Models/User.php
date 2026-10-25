@@ -34,6 +34,16 @@ class User extends Authenticatable implements HasEmailAuthentication
         return true;
     }
 
+    public function toggleEmailAuthentication(bool $condition): void
+    {
+        if (! $condition) {
+            return;
+        }
+
+        $this->has_email_authentication = true;
+        $this->save();
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
-            // ->profile()
+            ->profile()
             ->multiFactorAuthentication([
                 EmailAuthentication::make()
                     ->codeExpiryMinutes(4)
