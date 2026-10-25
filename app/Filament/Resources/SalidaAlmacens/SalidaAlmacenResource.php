@@ -7,6 +7,7 @@ use App\Filament\Resources\SalidaAlmacens\Pages\EditSalidaAlmacen;
 use App\Filament\Resources\SalidaAlmacens\Pages\ListSalidaAlmacens;
 use App\Filament\Resources\SalidaAlmacens\Pages\ViewSalidaAlmacen;
 use App\Models\Entrega;
+use App\Models\Orden;
 use App\Models\OrdenProducto;
 use App\Models\SalidaAlmacen;
 use App\Models\User;
@@ -54,6 +55,16 @@ class SalidaAlmacenResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -69,6 +80,9 @@ class SalidaAlmacenResource extends Resource
                         Select::make('orden_id')
                             ->label('Orden')
                             ->relationship('orden', 'numero')
+                            ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                                ? $record->numero
+                                : 'Orden #'.$record->getKey())
                             ->disabled()
                             ->dehydrated()
                             ->required(),
@@ -211,7 +225,10 @@ class SalidaAlmacenResource extends Resource
             ->filters([
                 SelectFilter::make('orden_id')
                     ->label('Orden')
-                    ->relationship('orden', 'numero'),
+                    ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey()),
                 SelectFilter::make('almacen_id')
                     ->label('Almacén')
                     ->relationship('almacen', 'nombre'),

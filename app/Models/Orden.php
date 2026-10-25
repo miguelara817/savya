@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'numero_boleta_pago',
     'comprobante_pago',
     'pagado_en',
+    'motivo_rechazo',
 ])]
 class Orden extends Model
 {

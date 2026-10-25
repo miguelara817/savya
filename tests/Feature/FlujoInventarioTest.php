@@ -296,6 +296,7 @@ test('rechazar registra el motivo y no deja reservas activas', function (): void
     app(OrdenService::class)->rechazar($orden, $escenario['aprobador'], 'Documentación incompleta.');
 
     expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Rechazada->value)
+        ->and($orden->fresh()->motivo_rechazo)->toBe('Documentación incompleta.')
         ->and(ReservaStock::query()->where('estado', ReservaStock::ESTADO_ACTIVA)->count())->toBe(0)
         ->and($orden->historialEstados()->latest('orden_historial_estado_id')->first()?->observaciones)
         ->toContain('Documentación incompleta.');

@@ -198,6 +198,7 @@ class OrdenService
             $this->asegurarEstado($orden, [OrdenEstadoCodigo::PendienteAprobacion]);
 
             $this->liberarReservasPendientes($orden);
+            $orden->motivo_rechazo = $motivo;
 
             $this->transicionar(
                 $orden,

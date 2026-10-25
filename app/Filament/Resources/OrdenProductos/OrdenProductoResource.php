@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrdenProductos;
 
 use App\Filament\Resources\OrdenProductos\Pages\ListOrdenProductos;
+use App\Models\Orden;
 use App\Models\OrdenProducto;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -45,6 +46,9 @@ class OrdenProductoResource extends Resource
                 Select::make('orden_id')
                     ->label('Orden')
                     ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey())
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -114,7 +118,10 @@ class OrdenProductoResource extends Resource
             ->filters([
                 SelectFilter::make('orden_id')
                     ->label('Orden')
-                    ->relationship('orden', 'numero'),
+                    ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey()),
                 SelectFilter::make('producto_id')
                     ->label('Producto')
                     ->relationship('producto', 'nombre'),

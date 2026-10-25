@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrdenHistorialEstados;
 
 use App\Filament\Resources\OrdenHistorialEstados\Pages\ListOrdenHistorialEstados;
+use App\Models\Orden;
 use App\Models\OrdenHistorialEstado;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -45,6 +46,9 @@ class OrdenHistorialEstadoResource extends Resource
                 Select::make('orden_id')
                     ->label('Orden')
                     ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey())
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -94,7 +98,10 @@ class OrdenHistorialEstadoResource extends Resource
             ->filters([
                 SelectFilter::make('orden_id')
                     ->label('Orden')
-                    ->relationship('orden', 'numero'),
+                    ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey()),
                 SelectFilter::make('orden_estado_id')
                     ->label('Estado')
                     ->relationship('estado', 'nombre'),

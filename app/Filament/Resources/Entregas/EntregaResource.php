@@ -51,24 +51,30 @@ class EntregaResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Datos de la entrega')
                     ->columns(2)
                     ->schema([
-                        TextInput::make('numero')
-                            ->label('Número')
-                            ->disabled()
-                            ->dehydrated()
-                            ->maxLength(30),
-                        Select::make('salida_id')
-                            ->label('Salida')
-                            ->relationship('salida', 'numero')
-                            ->disabled()
-                            ->dehydrated()
-                            ->required(),
+                        // TextInput::make('numero')
+                        //     ->label('Número')
+                        //     ->disabled()
+                        //     ->dehydrated()
+                        //     ->maxLength(30),
+                        // Select::make('salida_id')
+                        //     ->label('Salida')
+                        //     ->relationship('salida', 'numero')
+                        //     ->disabled()
+                        //     ->dehydrated()
+                        //     ->required(),
                         TextInput::make('estado')
                             ->label('Estado')
                             ->disabled()
@@ -81,18 +87,18 @@ class EntregaResource extends Resource
                             ->relationship('responsable', 'name')
                             ->disabled()
                             ->dehydrated(),
-                        Select::make('receptor_persona_id')
-                            ->label('Persona receptora')
-                            ->relationship('receptor', 'nombre')
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('receptor_nombre')
-                            ->label('Nombre del receptor')
-                            ->required()
-                            ->maxLength(200),
-                        TextInput::make('receptor_documento')
-                            ->label('Documento del receptor')
-                            ->maxLength(50),
+                        // Select::make('receptor_persona_id')
+                        //     ->label('Persona receptora')
+                        //     ->relationship('receptor', 'nombre')
+                        //     ->searchable()
+                        //     ->preload(),
+                        // TextInput::make('receptor_nombre')
+                        //     ->label('Nombre del receptor')
+                        //     ->required()
+                        //     ->maxLength(200),
+                        // TextInput::make('receptor_documento')
+                        //     ->label('Documento del receptor')
+                        //     ->maxLength(50),
                         Textarea::make('observaciones')
                             ->label('Observaciones')
                             ->columnSpanFull(),
@@ -125,22 +131,22 @@ class EntregaResource extends Resource
                                     ->required(),
                             ]),
                     ]),
-                Section::make('Firma de conformidad')
-                    ->columns(2)
-                    ->schema([
-                        FileUpload::make('firma_receptor_archivo')
-                            ->label('Archivo de firma')
-                            ->directory('firmas/entregas')
-                            ->columnSpanFull(),
-                        DateTimePicker::make('firmado_en')
-                            ->label('Firmado en')
-                            ->disabled()
-                            ->dehydrated(),
-                        DateTimePicker::make('confirmado_en')
-                            ->label('Confirmado en')
-                            ->disabled()
-                            ->dehydrated(),
-                    ]),
+                // Section::make('Firma de conformidad')
+                //     ->columns(2)
+                //     ->schema([
+                //         FileUpload::make('firma_receptor_archivo')
+                //             ->label('Archivo de firma')
+                //             ->directory('firmas/entregas')
+                //             ->columnSpanFull(),
+                //         DateTimePicker::make('firmado_en')
+                //             ->label('Firmado en')
+                //             ->disabled()
+                //             ->dehydrated(),
+                //         DateTimePicker::make('confirmado_en')
+                //             ->label('Confirmado en')
+                //             ->disabled()
+                //             ->dehydrated(),
+                //     ]),
             ]);
     }
 
@@ -148,17 +154,19 @@ class EntregaResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('entrega_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('numero')
-                    ->label('Número')
-                    ->searchable()
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                TextColumn::make('salida.orden.codigo_orden')
+                    ->label('Orden')
                     ->sortable(),
-                TextColumn::make('salida.numero')
-                    ->label('Salida')
-                    ->searchable(),
+                // TextColumn::make('numero')
+                //     ->label('Número')
+                //     ->searchable()
+                //     ->sortable(),
+                // TextColumn::make('salida.numero')
+                //     ->label('Salida')
+                //     ->searchable(),
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
@@ -171,46 +179,46 @@ class EntregaResource extends Resource
                     ->label('Fecha de entrega')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('responsable.name')
-                    ->label('Responsable')
-                    ->searchable(),
-                TextColumn::make('receptor.nombre')
-                    ->label('Persona receptora')
-                    ->searchable(),
-                TextColumn::make('receptor_nombre')
-                    ->label('Nombre del receptor')
-                    ->searchable(),
-                TextColumn::make('receptor_documento')
-                    ->label('Documento del receptor')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('observaciones')
-                    ->label('Observaciones')
-                    ->limit(50)
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firma_receptor_archivo')
-                    ->label('Archivo de firma')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('firmado_en')
-                    ->label('Firmado en')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('confirmado_en')
-                    ->label('Confirmado en')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('responsable.name')
+                //     ->label('Responsable')
+                //     ->searchable(),
+                // TextColumn::make('receptor.nombre')
+                //     ->label('Persona receptora')
+                //     ->searchable(),
+                // TextColumn::make('receptor_nombre')
+                //     ->label('Nombre del receptor')
+                //     ->searchable(),
+                // TextColumn::make('receptor_documento')
+                //     ->label('Documento del receptor')
+                //     ->searchable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('observaciones')
+                //     ->label('Observaciones')
+                //     ->limit(50)
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firma_receptor_archivo')
+                //     ->label('Archivo de firma')
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('firmado_en')
+                //     ->label('Firmado en')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('confirmado_en')
+                //     ->label('Confirmado en')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('created_at')
+                //     ->label('Creado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('updated_at')
+                //     ->label('Actualizado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('salida_id')
@@ -266,8 +274,8 @@ class EntregaResource extends Resource
     {
         return [
             'index' => ListEntregas::route('/'),
-            'view' => ViewEntrega::route('/{record}'),
-            'edit' => EditEntrega::route('/{record}/edit'),
+            // 'view' => ViewEntrega::route('/{record}'),
+            // 'edit' => EditEntrega::route('/{record}/edit'),
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrdenPersonas;
 
 use App\Filament\Resources\OrdenPersonas\Pages\ListOrdenPersonas;
+use App\Models\Orden;
 use App\Models\OrdenPersona;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -45,6 +46,9 @@ class OrdenPersonaResource extends Resource
                 Select::make('orden_id')
                     ->label('Orden')
                     ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey())
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -89,7 +93,10 @@ class OrdenPersonaResource extends Resource
             ->filters([
                 SelectFilter::make('orden_id')
                     ->label('Orden')
-                    ->relationship('orden', 'numero'),
+                    ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey()),
                 SelectFilter::make('persona_id')
                     ->label('Persona')
                     ->relationship('persona', 'nombre'),

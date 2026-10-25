@@ -458,6 +458,21 @@ class OrdenResource extends Resource
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
+                    Action::make('verMotivoRechazo')
+                        ->label('Ver motivo')
+                        ->icon(Heroicon::OutlinedEye)
+                        ->color('gray')
+                        ->modalHeading('Motivo del rechazo')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Cerrar')
+                        ->authorize('verMotivoRechazo')
+                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Rechazada)
+                            && filled($record->motivo_rechazo))
+                        ->schema([
+                            Placeholder::make('motivo_rechazo')
+                                ->label('Motivo registrado por ventas')
+                                ->content(fn (Orden $record): string => $record->motivo_rechazo ?? ''),
+                        ]),
                     EditAction::make(),
                     Action::make('enviarAprobacion')
                         ->label('Enviar a aprobación')

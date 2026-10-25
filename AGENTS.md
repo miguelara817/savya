@@ -163,3 +163,4 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## Flujo de órdenes
 
 - Después de verificar el pago, `encargado_almacen` confirma la entrega desde la orden. La operación registra la salida y la entrega, descuenta el stock, completa la orden y marca las reservas como liberadas usando la fecha de entrega.
+- Al rechazar ventas una orden pendiente, guarda el motivo en la orden; el cliente solicitante y `encargado_ventas` pueden consultarlo desde «Ver motivo».

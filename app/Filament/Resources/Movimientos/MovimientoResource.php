@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Movimientos;
 
 use App\Filament\Resources\Movimientos\Pages\ListMovimientos;
 use App\Models\Movimiento;
+use App\Models\Orden;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -102,7 +103,10 @@ class MovimientoResource extends Resource
                         ->all()),
                 SelectFilter::make('orden_id')
                     ->label('Orden')
-                    ->relationship('orden', 'numero'),
+                    ->relationship('orden', 'numero')
+                    ->getOptionLabelFromRecordUsing(fn (Orden $record): string => filled($record->numero)
+                        ? $record->numero
+                        : 'Orden #'.$record->getKey()),
             ])
             ->recordActions([])
             ->toolbarActions([]);

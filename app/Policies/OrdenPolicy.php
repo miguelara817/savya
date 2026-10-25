@@ -77,6 +77,15 @@ class OrdenPolicy
             && $orden->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion);
     }
 
+    public function verMotivoRechazo(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('View:Orden')
+            && $authUser->can('VerMotivoRechazo:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Rechazada)
+            && filled($orden->motivo_rechazo)
+            && (! $authUser->hasRole('cliente') || (int) $orden->solicitante_user_id === (int) $authUser->getAuthIdentifier());
+    }
+
     public function cancelar(AuthUser $authUser, Orden $orden): bool
     {
         return $authUser->can('Cancelar:Orden')
