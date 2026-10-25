@@ -18,7 +18,7 @@ class RolesPermisosSeeder extends Seeder
 
         $permisos = collect([
             'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden',
-            'EnviarAprobacion:Orden', 'Aprobar:Orden', 'Rechazar:Orden', 'Cancelar:Orden',
+            'EnviarAprobacion:Orden', 'Aprobar:Orden', 'Rechazar:Orden', 'Cancelar:Orden', 'Pagar:Orden', 'VerificarPago:Orden', 'Entregar:Orden',
             'ViewAny:OrdenProducto', 'View:OrdenProducto', 'Create:OrdenProducto', 'Update:OrdenProducto', 'Delete:OrdenProducto',
             'ViewAny:OrdenPersona', 'View:OrdenPersona', 'Create:OrdenPersona', 'Update:OrdenPersona', 'Delete:OrdenPersona',
             'ViewAny:OrdenHistorialEstado', 'View:OrdenHistorialEstado',
@@ -61,7 +61,7 @@ class RolesPermisosSeeder extends Seeder
                 'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             ],
             'cliente' => [
-                'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden',
+                'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden', 'Pagar:Orden',
             ],
             // 'operador_ordenes' => [
             //     'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden',
@@ -75,25 +75,24 @@ class RolesPermisosSeeder extends Seeder
             //     'ViewAny:Persona', 'View:Persona', 'Create:Persona', 'Update:Persona',
             // ],
             'encargado_ventas' => [
-                'ViewAny:Orden', 'View:Orden', 'Aprobar:Orden', 'Rechazar:Orden',
+                'ViewAny:Orden', 'View:Orden', 'Aprobar:Orden', 'Rechazar:Orden', 'VerificarPago:Orden',
                 'ViewAny:OrdenProducto', 'View:OrdenProducto',
                 'ViewAny:OrdenHistorialEstado', 'View:OrdenHistorialEstado',
                 'ViewAny:PublicacionExistencia', 'View:PublicacionExistencia',
                 'ViewAny:Existencia', 'View:Existencia',
-                // 'ViewAny:StockSaldo', 'View:StockSaldo',
-                // 'ViewAny:ReservaStock', 'View:ReservaStock',
+                'ViewAny:StockSaldo', 'View:StockSaldo',
+                'ViewAny:ReservaStock', 'View:ReservaStock',
                 'ViewAny:Persona', 'View:Persona', 'ViewAny:Producto', 'View:Producto', 'ViewAny:Almacen', 'View:Almacen',
             ],
             'encargado_almacen' => [
-                'ViewAny:Orden', 'View:Orden', 'Update:Orden',
+                'ViewAny:Orden', 'View:Orden', 'Update:Orden', 'Entregar:Orden',
                 'ViewAny:OrdenProducto', 'View:OrdenProducto',
-                // 'ViewAny:SalidaAlmacen', 'View:SalidaAlmacen', 'Create:SalidaAlmacen', 'Update:SalidaAlmacen', 'Delete:SalidaAlmacen',
-                // 'Confirmar:SalidaAlmacen',
+                'ViewAny:SalidaAlmacen', 'View:SalidaAlmacen', 'Create:SalidaAlmacen', 'Confirmar:SalidaAlmacen',
+                'ViewAny:Entrega', 'View:Entrega', 'Create:Entrega', 'Confirmar:Entrega',
                 // 'ViewAny:SalidaDetalle', 'View:SalidaDetalle', 'Create:SalidaDetalle', 'Update:SalidaDetalle', 'Delete:SalidaDetalle',
                 // 'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
                 // 'ViewAny:StockSaldo', 'View:StockSaldo',
                 // 'ViewAny:ReservaStock', 'View:ReservaStock',
-                // 'ViewAny:Entrega', 'View:Entrega',
                 'ViewAny:Producto', 'View:Producto', 'ViewAny:Almacen', 'View:Almacen',
             ],
             // 'entregador' => [

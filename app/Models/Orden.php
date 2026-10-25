@@ -25,6 +25,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'observaciones',
     'cantidad_total',
     'precio_total',
+    'numero_boleta_pago',
+    'comprobante_pago',
+    'pagado_en',
 ])]
 class Orden extends Model
 {
@@ -86,6 +89,15 @@ class Orden extends Model
         ])->saveQuietly();
     }
 
+    public function registrarPago(string $numeroBoleta, string $comprobante): void
+    {
+        $this->forceFill([
+            'numero_boleta_pago' => $numeroBoleta,
+            'comprobante_pago' => $comprobante,
+            'pagado_en' => now(),
+        ])->save();
+    }
+
     use SoftDeletes;
 
     protected $table = 'ordenes';
@@ -101,6 +113,7 @@ class Orden extends Model
             'fecha_registro' => 'datetime',
             'fecha_efectivizacion' => 'datetime',
             'firmado_en' => 'datetime',
+            'pagado_en' => 'datetime',
         ];
     }
 
@@ -128,6 +141,8 @@ class Orden extends Model
     {
         return $this->estaEnEstado(
             OrdenEstadoCodigo::Aprobada,
+            OrdenEstadoCodigo::Pagado,
+            OrdenEstadoCodigo::Verificado,
             OrdenEstadoCodigo::ParcialmenteAtendida,
         );
     }

@@ -404,6 +404,53 @@ test('confirmar una entrega no vuelve a descontar stock', function (): void {
         ->and(Movimiento::query()->count())->toBe(1);
 });
 
+test('el encargado de almacen puede entregar una orden verificada y liberar sus reservas en la fecha de entrega', function (): void {
+    $responsable = User::factory()->create();
+    $encargado = usuarioConRol('encargado_almacen');
+    $almacen = Almacen::factory()->create();
+    $producto = Producto::factory()->create();
+    $publicacion = crearPublicacion($responsable);
+    $existencia = crearExistencia($publicacion, $producto, $almacen, cantidad: 10, precio: 10);
+    $saldo = crearSaldo($producto, $almacen, actual: 10, reservada: 5, existencia: $existencia);
+    $orden = crearOrden($responsable, $almacen, [
+        ['existencia' => $existencia, 'cantidad' => 5],
+    ], OrdenEstadoCodigo::Verificado);
+    $linea = $orden->productos()->firstOrFail();
+    $reserva = ReservaStock::query()->create([
+        'orden_producto_id' => $linea->orden_producto_id,
+        'producto_id' => $producto->producto_id,
+        'almacen_id' => $almacen->almacen_id,
+        'cantidad' => 5,
+        'estado' => ReservaStock::ESTADO_ACTIVA,
+        'reservada_en' => now()->subHour(),
+    ]);
+
+    app(EntregaService::class)->confirmarOrdenVerificada($orden, $encargado);
+
+    $entrega = Entrega::query()->firstOrFail();
+
+    expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Completada->value)
+        ->and($saldo->fresh()->cantidad_actual)->toBe(5)
+        ->and($saldo->fresh()->cantidad_reservada)->toBe(0)
+        ->and($entrega->estado)->toBe(Entrega::ESTADO_CONFIRMADA)
+        ->and($reserva->fresh()->estado)->toBe(ReservaStock::ESTADO_LIBERADA)
+        ->and($reserva->fresh()->liberada_en->equalTo($entrega->fecha_entrega))->toBeTrue()
+        ->and(Movimiento::query()->count())->toBe(1);
+});
+
+test('un cliente no puede confirmar la entrega de una orden verificada', function (): void {
+    $cliente = usuarioConRol('cliente');
+    $almacen = Almacen::factory()->create();
+    $orden = crearOrden($cliente, $almacen, [], OrdenEstadoCodigo::Verificado);
+
+    expect(fn () => app(EntregaService::class)->confirmarOrdenVerificada($orden, $cliente))
+        ->toThrow(AuthorizationException::class);
+
+    expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Verificado->value)
+        ->and(Entrega::query()->count())->toBe(0)
+        ->and(SalidaAlmacen::query()->count())->toBe(0);
+});
+
 test('no se puede entregar mas de lo despachado', function (): void {
     $escenario = escenarioSimple(stock: 10, cantidad: 5);
     $salida = app(SalidaAlmacenService::class)->prepararDesdeOrden(

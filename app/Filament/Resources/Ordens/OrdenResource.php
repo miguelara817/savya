@@ -15,6 +15,7 @@ use App\Models\PublicacionExistencia;
 use App\Models\SalidaAlmacen;
 use App\Models\StockSaldo;
 use App\Models\User;
+use App\Services\EntregaService;
 use App\Services\OrdenService;
 use App\Services\SalidaAlmacenService;
 use App\Support\DocumentoNumero;
@@ -50,7 +51,9 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class OrdenResource extends Resource
 {
@@ -206,7 +209,7 @@ class OrdenResource extends Resource
                                 TextInput::make('cantidad_solicitada')
                                     ->label('Cantidad')
                                     ->integer()
-                                    ->minValue(1)
+                                    ->minValue(160)
                                     ->required()
                                     ->live(),
                                 TextInput::make('precio_unitario')
@@ -390,6 +393,14 @@ class OrdenResource extends Resource
                     ->label('Fecha de registro')
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('numero_boleta_pago')
+                    ->label('Boleta de pago')
+                    ->toggleable(),
+                TextColumn::make('pagado_en')
+                    ->label('Fecha de pago')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('fecha_efectivizacion')
                     ->label('Fecha de efectivización')
                     ->dateTime()
@@ -494,6 +505,139 @@ class OrdenResource extends Resource
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('pagar')
+                        ->label('Pagar')
+                        ->icon(Heroicon::OutlinedCreditCard)
+                        ->color('success')
+                        ->modalHeading('Registrar pago de la orden')
+                        ->modalSubmitActionLabel('Registrar pago')
+                        ->authorize('pagar')
+                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Aprobada))
+                        ->schema([
+                            Placeholder::make('qr_pago')
+                                ->label('Código QR de pago')
+                                ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
+                                    ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
+                                    : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            Placeholder::make('precio_total')
+                                ->label('Importe total')
+                                ->content(fn (Orden $record): string => 'Bs '.number_format((float) $record->precio_total, 2, '.', ',')),
+                            Placeholder::make('datos_facturacion')
+                                ->label('Datos de facturación')
+                                ->content(fn (Orden $record): string => implode(' · ', array_filter([
+                                    $record->razon_social,
+                                    'NIT: '.$record->nit,
+                                    $record->direccion_facturacion,
+                                    $record->correo_facturacion,
+                                ]))),
+                            TextInput::make('numero_boleta_pago')
+                                ->label('Número de boleta de pago')
+                                ->required()
+                                ->maxLength(100),
+                            FileUpload::make('comprobante_pago')
+                                ->label('Comprobante de pago')
+                                ->disk('local')
+                                ->directory('comprobantes/ordenes')
+                                ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file, Orden $record): string {
+                                    $monto = str_replace('.', '-', number_format((float) $record->precio_total, 2, '.', ''));
+                                    $extension = $file->guessExtension() ?? 'bin';
+
+                                    return sprintf(
+                                        'solicitante_%s_orden_%s_%s_monto_%s.%s',
+                                        $record->solicitante_user_id ?? 'sin_id',
+                                        $record->getKey(),
+                                        now()->format('Ymd_His'),
+                                        $monto,
+                                        $extension,
+                                    );
+                                })
+                                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
+                                ->maxSize(10240)
+                                ->required(),
+                        ])
+                        ->action(function (Orden $record, array $data): void {
+                            try {
+                                app(OrdenService::class)->registrarPago(
+                                    $record,
+                                    self::usuarioActual(),
+                                    $data['numero_boleta_pago'],
+                                    $data['comprobante_pago'],
+                                );
+                            } catch (DomainException $exception) {
+                                self::notificarError($exception);
+
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title('Pago registrado')
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('verificarPago')
+                        ->label('Revisar pago')
+                        ->icon(Heroicon::OutlinedEye)
+                        ->color('warning')
+                        ->modalHeading('Revisar comprobante de pago')
+                        ->modalSubmitActionLabel('Verificar pago')
+                        ->modalCancelActionLabel('Cerrar')
+                        ->authorize('verificarPago')
+                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Pagado))
+                        ->fillForm(fn (Orden $record): array => [
+                            'numero_boleta_pago' => $record->numero_boleta_pago,
+                            'comprobante_pago' => $record->comprobante_pago,
+                        ])
+                        ->schema([
+                            Placeholder::make('qr_pago')
+                                ->label('Código QR de pago')
+                                ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
+                                    ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
+                                    : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            Placeholder::make('precio_total')
+                                ->label('Importe total')
+                                ->content(fn (Orden $record): string => 'Bs '.number_format((float) $record->precio_total, 2, '.', ',')),
+                            Placeholder::make('datos_facturacion')
+                                ->label('Datos de facturación')
+                                ->content(fn (Orden $record): string => implode(' · ', array_filter([
+                                    $record->razon_social,
+                                    'NIT: '.$record->nit,
+                                    $record->direccion_facturacion,
+                                    $record->correo_facturacion,
+                                ]))),
+                            TextInput::make('numero_boleta_pago')
+                                ->label('Número de boleta de pago')
+                                ->disabled(),
+                            FileUpload::make('comprobante_pago')
+                                ->label('Comprobante de pago')
+                                ->disk('local')
+                                ->directory('comprobantes/ordenes')
+                                ->disabled()
+                                ->downloadable()
+                                ->previewable(),
+                        ])
+                        ->extraModalFooterActions(fn (Action $action): array => [
+                            $action->makeModalSubmitAction('rechazarPago', arguments: ['rechazarPago' => true])
+                                ->label('Rechazar pago')
+                                ->color('danger'),
+                        ])
+                        ->action(function (Orden $record, array $arguments): void {
+                            try {
+                                if ($arguments['rechazarPago'] ?? false) {
+                                    app(OrdenService::class)->rechazarPago($record, self::usuarioActual());
+                                } else {
+                                    app(OrdenService::class)->verificarPago($record, self::usuarioActual());
+                                }
+                            } catch (DomainException $exception) {
+                                self::notificarError($exception);
+
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title(($arguments['rechazarPago'] ?? false) ? 'Pago rechazado' : 'Pago verificado')
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('rechazar')
                         ->label('Rechazar orden')
                         ->icon(Heroicon::OutlinedXCircle)
@@ -558,12 +702,36 @@ class OrdenResource extends Resource
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('entregado')
+                        ->label('Entregado')
+                        ->icon(Heroicon::OutlinedCheckCircle)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmar orden entregada')
+                        ->modalDescription('Se confirmará el despacho y la entrega completa, se descontará el stock físico y se marcarán como liberadas las reservas con la fecha de entrega.')
+                        ->authorize('entregar')
+                        ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Verificado))
+                        ->action(function (Orden $record): void {
+                            try {
+                                app(EntregaService::class)->confirmarOrdenVerificada($record, self::usuarioActual());
+                            } catch (DomainException $exception) {
+                                self::notificarError($exception);
+
+                                return;
+                            }
+
+                            Notification::make()
+                                ->title('Orden marcada como entregada')
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('prepararSalida')
                         ->label('Preparar salida')
                         ->icon(Heroicon::OutlinedTruck)
                         ->color('gray')
                         ->authorize(fn (): bool => self::usuarioActual()->can('create', SalidaAlmacen::class))
-                        ->visible(fn (Orden $record): bool => $record->estaEnCurso())
+                        ->visible(fn (Orden $record): bool => $record->estaEnCurso()
+                            && ! $record->estaEnEstado(OrdenEstadoCodigo::Verificado))
                         ->action(function (Orden $record) {
                             try {
                                 $salida = app(SalidaAlmacenService::class)->prepararDesdeOrden($record, self::usuarioActual());

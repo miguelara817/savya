@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\OrdenEstadoCodigo;
 use App\Models\Entrega;
 use App\Models\EntregaDetalle;
 use App\Models\Orden;
+use App\Models\ReservaStock;
 use App\Models\SalidaAlmacen;
 use App\Models\SalidaDetalle;
 use App\Models\User;
@@ -15,7 +17,48 @@ use Illuminate\Support\Facades\Gate;
 
 class EntregaService
 {
-    public function __construct(private OrdenService $ordenService) {}
+    public function __construct(
+        private OrdenService $ordenService,
+        private SalidaAlmacenService $salidaAlmacenService,
+    ) {}
+
+    /**
+     * Completes dispatch and delivery for a verified order in one atomic operation.
+     */
+    public function confirmarOrdenVerificada(Orden $orden, User $usuario): void
+    {
+        DB::transaction(function () use ($orden, $usuario): void {
+            $orden = Orden::query()
+                ->whereKey($orden->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            Gate::forUser($usuario)->authorize('entregar', $orden);
+
+            if (! $orden->estaEnEstado(OrdenEstadoCodigo::Verificado)) {
+                throw new DomainException('Solo se puede confirmar como entregada una orden con el pago verificado.');
+            }
+
+            $salida = $this->salidaAlmacenService->prepararDesdeOrden($orden, $usuario);
+            $this->salidaAlmacenService->confirmar($salida, $usuario);
+
+            $entrega = $this->prepararDesdeSalida($salida->fresh(), $usuario);
+            $this->confirmar($entrega, $usuario);
+
+            $fechaLiberacion = $entrega->fresh()->fecha_entrega;
+            $lineasOrden = $orden->productos()->pluck('orden_producto_id');
+            $reservasLiberadas = ReservaStock::query()
+                ->whereIn('orden_producto_id', $lineasOrden)
+                ->update([
+                    'estado' => ReservaStock::ESTADO_LIBERADA,
+                    'liberada_en' => $fechaLiberacion,
+                ]);
+
+            if ($reservasLiberadas !== $lineasOrden->count()) {
+                throw new DomainException('No fue posible liberar las reservas de stock para toda la orden.');
+            }
+        }, 3);
+    }
 
     /**
      * Crea una entrega en borrador con las cantidades pendientes de recibir de la salida.
@@ -167,10 +210,11 @@ class EntregaService
                 }
             }
 
+            $fechaConfirmacion = now();
             $entrega->estado = Entrega::ESTADO_CONFIRMADA;
-            $entrega->fecha_entrega ??= now();
-            $entrega->firmado_en ??= now();
-            $entrega->confirmado_en = now();
+            $entrega->fecha_entrega ??= $fechaConfirmacion;
+            $entrega->firmado_en ??= $fechaConfirmacion;
+            $entrega->confirmado_en = $fechaConfirmacion;
             $entrega->responsable_user_id = $usuario->getKey();
             $entrega->save();
 

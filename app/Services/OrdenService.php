@@ -19,6 +19,7 @@ use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class OrdenService
 {
@@ -111,6 +112,73 @@ class OrdenService
                 $observacion ?: 'Orden aprobada y stock reservado.',
             );
         }, 3);
+    }
+
+    public function registrarPago(Orden $orden, User $usuario, string $numeroBoleta, string $comprobante): void
+    {
+        DB::transaction(function () use ($orden, $usuario, $numeroBoleta, $comprobante): void {
+            $orden = $this->bloquearOrden($orden);
+
+            Gate::forUser($usuario)->authorize('pagar', $orden);
+            $this->asegurarEstado($orden, [OrdenEstadoCodigo::Aprobada]);
+
+            $orden->registrarPago($numeroBoleta, $comprobante);
+
+            $this->transicionar(
+                $orden,
+                OrdenEstadoCodigo::Pagado,
+                $usuario,
+                'Pago registrado por el cliente. Boleta: '.$numeroBoleta,
+            );
+        }, 3);
+    }
+
+    public function verificarPago(Orden $orden, User $usuario): void
+    {
+        DB::transaction(function () use ($orden, $usuario): void {
+            $orden = $this->bloquearOrden($orden);
+
+            Gate::forUser($usuario)->authorize('verificarPago', $orden);
+            $this->asegurarEstado($orden, [OrdenEstadoCodigo::Pagado]);
+
+            $this->transicionar(
+                $orden,
+                OrdenEstadoCodigo::Verificado,
+                $usuario,
+                'Comprobante de pago verificado por ventas.',
+            );
+        }, 3);
+    }
+
+    public function rechazarPago(Orden $orden, User $usuario): void
+    {
+        $comprobante = null;
+
+        DB::transaction(function () use ($orden, $usuario, &$comprobante): void {
+            $orden = $this->bloquearOrden($orden);
+
+            Gate::forUser($usuario)->authorize('verificarPago', $orden);
+            $this->asegurarEstado($orden, [OrdenEstadoCodigo::Pagado]);
+
+            $comprobante = $orden->comprobante_pago;
+
+            $orden->forceFill([
+                'numero_boleta_pago' => null,
+                'comprobante_pago' => null,
+                'pagado_en' => null,
+            ])->save();
+
+            $this->transicionar(
+                $orden,
+                OrdenEstadoCodigo::Aprobada,
+                $usuario,
+                'Pago rechazado por ventas; el cliente debe registrar nuevamente el pago.',
+            );
+        }, 3);
+
+        if (filled($comprobante)) {
+            Storage::disk('local')->delete($comprobante);
+        }
     }
 
     /**

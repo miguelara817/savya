@@ -159,3 +159,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Mantén las instrucciones concisas, claras y útiles para futuras sesiones de agentes.
 - Al finalizar una tarea que requiera actualizar AGENTS.md, incluye el archivo entre los cambios realizados.
 - No elimines reglas existentes sin verificar que hayan quedado obsoletas.
+
+## Flujo de órdenes
+
+- Después de verificar el pago, `encargado_almacen` confirma la entrega desde la orden. La operación registra la salida y la entrega, descuenta el stock, completa la orden y marca las reservas como liberadas usando la fecha de entrega.

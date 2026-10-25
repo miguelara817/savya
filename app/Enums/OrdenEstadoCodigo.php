@@ -7,6 +7,8 @@ enum OrdenEstadoCodigo: string
     case Borrador = 'BORRADOR';
     case PendienteAprobacion = 'PENDIENTE_APROBACION';
     case Aprobada = 'APROBADA';
+    case Pagado = 'PAGADO';
+    case Verificado = 'VERIFICADO';
     case ParcialmenteAtendida = 'PARCIALMENTE_ATENDIDA';
     case Completada = 'COMPLETADA';
     case Rechazada = 'RECHAZADA';
@@ -33,6 +35,8 @@ enum OrdenEstadoCodigo: string
     {
         return in_array($this, [
             self::Aprobada,
+            self::Pagado,
+            self::Verificado,
             self::ParcialmenteAtendida,
         ], true);
     }

@@ -51,6 +51,26 @@ class OrdenPolicy
             && $orden->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion);
     }
 
+    public function pagar(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('Pagar:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Aprobada)
+            && (! $authUser->hasRole('cliente') || (int) $orden->solicitante_user_id === (int) $authUser->getAuthIdentifier());
+    }
+
+    public function verificarPago(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('VerificarPago:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Pagado)
+            && filled($orden->comprobante_pago);
+    }
+
+    public function entregar(AuthUser $authUser, Orden $orden): bool
+    {
+        return $authUser->can('Entregar:Orden')
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Verificado);
+    }
+
     public function rechazar(AuthUser $authUser, Orden $orden): bool
     {
         return $authUser->can('Rechazar:Orden')

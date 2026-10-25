@@ -83,7 +83,7 @@ class ReservaStockResource extends Resource
                     ->label('ID')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('ordenProducto.orden.numero')
+                TextColumn::make('ordenProducto.orden.solicitante.name')
                     ->label('Orden')
                     ->searchable(),
                 TextColumn::make('producto.nombre')
