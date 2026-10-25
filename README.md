@@ -1,58 +1,155 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SAVYA
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicación web para la gestión de órdenes e inventario, construida con Laravel y un panel administrativo Filament.
 
-## About Laravel
+## Requisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP **8.4.27 o superior**, con las extensiones requeridas por Laravel y `pdo_pgsql`.
+- Composer 2.
+- Node.js y npm compatibles con Vite 8.
+- Docker con el plugin Docker Compose.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Versiones declaradas principales: Laravel `^13.17`, Filament `5.10.2`, PHP `^8.4.27`. Consulta `composer.json` y `package.json` para la lista completa.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Instalación local con Docker Compose
 
-## Learning Laravel
+El Compose del proyecto inicia PostgreSQL 17 y Mailpit. La aplicación Laravel se ejecuta en el host (no dentro de Docker), por lo que debe conectarse a PostgreSQL usando `127.0.0.1:5430` y a Mailpit usando `127.0.0.1:1025`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Desde la raíz del repositorio, inicia los servicios:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+docker compose up -d
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Comprueba el estado de los contenedores:
 
-## Contributing
+```bash
+docker compose ps
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Instala dependencias PHP y JavaScript:
 
-## Code of Conduct
+```bash
+composer install
+npm install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Prepara la configuración de Laravel:
 
-## Security Vulnerabilities
+```bash
+cp .env.example .env
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+En Windows PowerShell, usa en lugar del comando anterior:
 
-## License
+```powershell
+Copy-Item .env.example .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Edita `.env` para que coincida con PostgreSQL y los servicios de Docker Compose:
+
+```dotenv
+APP_NAME=SAVYA
+APP_URL=http://localhost:8000
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5430
+DB_DATABASE=savyaDB
+DB_USERNAME=root
+DB_PASSWORD=12345678
+ADMIN_NAME=Administrador
+ADMIN_EMAIL=admin@correo.bo
+ADMIN_PASSWORD=cambia-esta-clave
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_SCHEME=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Genera la clave de la aplicación, ejecuta migraciones y datos iniciales, y compila los recursos frontend:
+
+```bash
+php artisan key:generate
+php artisan migrate --seed
+npm run build
+```
+
+El seeder crea el usuario administrador usando `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` del `.env` y le asigna el rol `super_admin`. **Cambia la contraseña de ejemplo antes de iniciar**. No compartas ni subas el archivo `.env` al repositorio.
+
+## Iniciar la aplicación
+
+En una terminal:
+
+```bash
+php artisan serve
+```
+
+Visita `http://localhost:8000/admin` e inicia sesión con el correo y contraseña definidos en `.env`. El panel requiere verificación multifactor por correo. Mailpit recibe los mensajes SMTP en `http://localhost:1025`; abre su interfaz web en **http://localhost:8025** para consultar el código de verificación y otros correos enviados durante el desarrollo.
+
+Para desarrollo frontend con recarga automática, ejecuta en otra terminal:
+
+```bash
+npm run dev
+```
+
+Si necesitas correr colas (por ejemplo, para correo encolado), inicia también:
+
+```bash
+php artisan queue:work
+```
+
+## Conexión desde un contenedor
+
+Si ejecutas Laravel dentro de un contenedor que comparte la red de Docker Compose con los servicios, usa el nombre del servicio como host y el puerto interno:
+
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=db
+DB_PORT=5432
+DB_DATABASE=savyaDB
+DB_USERNAME=root
+DB_PASSWORD=12345678
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+```
+
+Los puertos publicados al host son PostgreSQL `5430` y SMTP `1025`; Mailpit UI usa el puerto `8025`. Los datos de PostgreSQL y Mailpit persisten en volúmenes Docker. Para detener los servicios sin borrar datos usa `docker compose down`; **no agregues `-v`**, porque eliminaría los volúmenes.
+
+Para reiniciar desde cero intencionalmente, `docker compose down -v` borra esos datos persistidos. No uses ese comando si necesitas conservar información.
+
+## Pruebas
+
+El proyecto usa Pest. Ejecuta todas las pruebas con:
+
+```bash
+php artisan test --compact
+```
+
+O un archivo específico:
+
+```bash
+php artisan test --compact tests/Feature/FlujoInventarioTest.php
+```
+
+## Comandos útiles
+
+```bash
+php artisan route:list
+php artisan migrate:status
+php artisan db:seed
+php artisan optimize:clear
+```
+
+## Estructura relevante
+
+- `app/Filament/Resources`: recursos y pantallas del panel.
+- `app/Services`: operaciones de negocio (órdenes, salidas, entregas y correo).
+- `app/Models`, `app/Policies`, `app/Enums`: datos, autorización y códigos de dominio.
+- `database/migrations`, `database/seeders`: esquema y datos iniciales.
+- `tests/Feature`: pruebas de flujos principales.
+
+Para una guía de soporte y mantenimiento más detallada, consulta [`GUIA_MANTENIMIENTO.md`](GUIA_MANTENIMIENTO.md).
