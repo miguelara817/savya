@@ -172,5 +172,15 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Flujo de órdenes
 
-- Después de verificar el pago, `encargado_almacen` confirma la entrega desde la orden. La operación registra la salida y la entrega, descuenta el stock, completa la orden y marca las reservas como liberadas usando la fecha de entrega.
-- Al rechazar ventas una orden pendiente, guarda el motivo en la orden; el cliente solicitante y `encargado_ventas` pueden consultarlo desde «Ver motivo».
+- `OrdenEstadoCodigo` es la fuente de verdad para los estados vigentes. Mantén el seeder y los gráficos de órdenes sincronizados con el enum. Una orden pasa a `PARCIALMENTE_ATENDIDA` cuando hay movimiento parcial y solo pasa a `COMPLETADA` cuando se entrega la cantidad total.
+- Una orden `APROBADA` queda pendiente de pago del cliente. Al rechazar ventas una orden pendiente o anular una aprobada a solicitud del cliente, guarda el motivo en la orden; el cliente solicitante y `encargado_ventas` pueden consultarlo desde «Ver motivo».
+- Después de verificar el pago, `encargado_almacen` confirma la entrega desde la orden. La operación registra la salida y la entrega, descuenta el stock, completa la orden y marca las reservas como liberadas usando la fecha de entrega. El permiso `Entregar:Orden` también autoriza crear la entrega interna que requiere este flujo.
+
+## Dashboard
+
+- El dashboard Filament usa filtros globales de período y almacén; sus widgets deben respetar el rol del usuario y limitar las órdenes del cliente a las propias.
+- Los indicadores y listados de stock consideran disponible la diferencia entre stock físico y reservado. El umbral actual de stock bajo es de 5 unidades disponibles.
+
+## Correo saliente
+
+- Usa `App\Services\CorreoService` para enviar correos transaccionales. El servicio acepta destinatarios, CC, CCO, asunto y cuerpo; reutilízalo para avisos de órdenes y credenciales.
