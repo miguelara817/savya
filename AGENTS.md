@@ -148,3 +148,14 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - After the feature tests pass, ask the user to run the complete suite with `php artisan test --compact`.
 
 </laravel-boost-guidelines>
+
+
+## Mantenimiento de AGENTS.md
+
+- Mantén este archivo actualizado cuando se introduzcan cambios relevantes en la arquitectura, estructura del proyecto, convenciones de desarrollo o reglas de negocio.
+- No actualices AGENTS.md por cambios menores, correcciones puntuales o implementaciones que no modifiquen las decisiones documentadas.
+- Antes de modificarlo, revisa su contenido para evitar duplicaciones y contradicciones.
+- Documenta únicamente decisiones confirmadas e implementadas, no funcionalidades pendientes como si ya existieran.
+- Mantén las instrucciones concisas, claras y útiles para futuras sesiones de agentes.
+- Al finalizar una tarea que requiera actualizar AGENTS.md, incluye el archivo entre los cambios realizados.
+- No elimines reglas existentes sin verificar que hayan quedado obsoletas.

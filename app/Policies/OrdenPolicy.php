@@ -20,7 +20,8 @@ class OrdenPolicy
 
     public function view(AuthUser $authUser, Orden $orden): bool
     {
-        return $authUser->can('View:Orden');
+        return $authUser->can('View:Orden')
+            && (! $authUser->hasRole('cliente') || (int) $orden->solicitante_user_id === (int) $authUser->getAuthIdentifier());
     }
 
     public function create(AuthUser $authUser): bool

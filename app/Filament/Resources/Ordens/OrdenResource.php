@@ -325,25 +325,43 @@ class OrdenResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $usuario = Filament::auth()->user();
+
+        if ($usuario instanceof User && $usuario->hasRole('cliente')) {
+            $query->where('solicitante_user_id', $usuario->getKey());
+        }
+
+        return $query;
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('orden_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('numero')
-                    ->label('Número')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('codigo_orden')
-                    ->label('UUID')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('persona.nombre')
-                    ->label('Cliente')
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                // TextColumn::make('orden_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('numero')
+                //     ->label('Número')
+                //     ->searchable()
+                //     ->sortable(),
+                // TextColumn::make('codigo_orden')
+                //     ->label('UUID')
+                //     ->searchable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('solicitante.name')
+                    ->label('Solicitante')
                     ->searchable(),
+                // TextColumn::make('persona.nombre')
+                //     ->label('Cliente')
+                //     ->searchable(),
                 TextColumn::make('razon_social')
                     ->label('Razón social')
                     ->searchable(),
@@ -368,9 +386,6 @@ class OrdenResource extends Resource
                     ->label('Líneas')
                     ->counts('productos')
                     ->numeric(),
-                TextColumn::make('solicitante.name')
-                    ->label('Solicitante')
-                    ->searchable(),
                 TextColumn::make('fecha_registro')
                     ->label('Fecha de registro')
                     ->dateTime()
@@ -416,6 +431,7 @@ class OrdenResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('persona_id')
                     ->label('Cliente')
