@@ -52,8 +52,40 @@ class Orden extends Model
             if (empty($orden->fecha_registro)) {
                 $orden->fecha_registro = now();
             }
+
+            if ((int) ($orden->cantidad_total ?? 0) === 0) {
+                $orden->cantidad_total = 0;
+            }
+
+            if ((float) ($orden->precio_total ?? 0) === 0.0) {
+                $orden->precio_total = 0;
+            }
+        });
+
+        static::saved(function (Orden $orden): void {
+            $orden->recalcularTotales();
         });
     }
+
+    public function recalcularTotales(): void
+    {
+        $productos = $this->productos()->get();
+
+        $cantidadTotal = $productos->sum(
+            fn ($producto): int => (int) $producto->cantidad_solicitada
+        );
+
+        $precioTotal = $productos->sum(
+            fn ($producto): float => (float) $producto->cantidad_solicitada
+                * (float) $producto->precio_unitario
+        );
+
+        $this->forceFill([
+            'cantidad_total' => $cantidadTotal,
+            'precio_total' => round($precioTotal, 2),
+        ])->saveQuietly();
+    }
+
     use SoftDeletes;
 
     protected $table = 'ordenes';

@@ -217,6 +217,13 @@ class OrdenResource extends Resource
                                     ->disabled(true)
                                     ->dehydrated(true)
                                     ->required(),
+                                Hidden::make('precio_total')
+                                    ->dehydrated()
+                                    ->dehydrateStateUsing(fn (Get $get): float => round(
+                                        (float) ($get('cantidad_solicitada') ?? 0)
+                                            * (float) ($get('precio_unitario') ?? 0),
+                                        2,
+                                    )),
                                 Placeholder::make('precio_total')
                                     ->label('Precio Total')
                                     ->content(function (Get $get): string {
