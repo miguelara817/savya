@@ -114,24 +114,20 @@ class OrdenResource extends Resource
                             ->label('NIT')
                             ->required()
                             ->maxLength(30),
-                        TextInput::make('direccion_facturacion')
-                            ->label('Dirección de facturación')
-                            ->maxLength(250),
                         TextInput::make('correo_facturacion')
                             ->label('Correo de facturación')
                             ->email()
+                            ->required()
                             ->maxLength(150),
+                        TextInput::make('direccion_facturacion')
+                            ->label('Dirección de facturación')
+                            ->maxLength(250),
                     ]),
 
                 Section::make('Productos solicitados')
                     // ->description('Las líneas se toman de una publicación de existencias y conservan su precio histórico.')
                     ->columns(2)
                     ->schema([
-                        DateTimePicker::make('fecha_registro')
-                            ->label('Fecha de registro')
-                            ->default(now())
-                            ->disabled()
-                            ->dehydrated(),
                         Select::make('almacen_id')
                             ->label('Almacén')
                             ->relationship('almacen', 'nombre')
@@ -140,6 +136,11 @@ class OrdenResource extends Resource
                             ->required()
                             ->live()
                             ->disabled(fn (string $operation): bool => $operation !== 'create')
+                            ->dehydrated(),
+                        DateTimePicker::make('fecha_registro')
+                            ->label('Fecha de registro')
+                            ->default(now())
+                            ->disabled()
                             ->dehydrated(),
                         Select::make('solicitante_user_id')
                             ->label('Solicitante')

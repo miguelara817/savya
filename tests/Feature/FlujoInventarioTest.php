@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\OrdenEstadoCodigo;
+use App\Mail\CorreoGenerico;
 use App\Models\Almacen;
 use App\Models\Entrega;
 use App\Models\EntregaDetalle;
@@ -16,6 +17,7 @@ use App\Models\SalidaAlmacen;
 use App\Models\SalidaDetalle;
 use App\Models\StockSaldo;
 use App\Models\User;
+use App\Services\CorreoService;
 use App\Services\EntregaService;
 use App\Services\OrdenService;
 use App\Services\PublicacionExistenciaService;
@@ -26,6 +28,7 @@ use Database\Seeders\RolesPermisosSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -260,6 +263,37 @@ test('aprobar reserva exactamente una vez y no duplica la reserva', function ():
 
     expect($escenario['saldo']->fresh()->cantidad_reservada)->toBe(5)
         ->and(ReservaStock::query()->count())->toBe(1);
+});
+
+test('aprobar envia la orden de pago al correo de facturacion', function (): void {
+    $escenario = escenarioSimple(stock: 10, cantidad: 5);
+    $orden = ordenPendiente($escenario);
+    $orden->forceFill(['correo_facturacion' => 'facturacion@example.com'])->save();
+    Mail::fake();
+
+    app(OrdenService::class)->aprobar($orden->fresh(), $escenario['aprobador']);
+
+    Mail::assertSent(CorreoGenerico::class, function (CorreoGenerico $correo) use ($orden): bool {
+        return $correo->hasTo('facturacion@example.com')
+            && $correo->hasSubject('Orden de pago '.$orden->numero)
+            && str_contains($correo->cuerpo, $orden->numero)
+            && str_contains($correo->cuerpo, 'Bs 50.00');
+    });
+});
+
+test('el servicio de correo acepta destinatarios con copia y cuerpo personalizado', function (): void {
+    Mail::fake();
+
+    app(CorreoService::class)->enviar(
+        destinatarios: ['principal@example.com'],
+        asunto: 'Aviso de prueba',
+        cuerpo: '<p>Contenido personalizado</p>',
+        cc: ['copia@example.com'],
+    );
+
+    Mail::assertSent(CorreoGenerico::class, fn (CorreoGenerico $correo): bool => $correo->hasTo('principal@example.com')
+        && $correo->hasCc('copia@example.com')
+        && $correo->cuerpo === '<p>Contenido personalizado</p>');
 });
 
 test('dos ordenes competidoras no pueden sobre-reservar el stock disponible', function (): void {

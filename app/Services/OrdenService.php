@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Storage;
 
 class OrdenService
 {
+    public function __construct(public OrdenPagoCorreoService $ordenPagoCorreoService) {}
+
     /**
      * Envía una orden en borrador a revisión.
      */
@@ -112,6 +114,9 @@ class OrdenService
                 $observacion ?: 'Orden aprobada y stock reservado.',
             );
         }, 3);
+
+        $orden->refresh();
+        $this->ordenPagoCorreoService->enviar($orden);
     }
 
     public function registrarPago(Orden $orden, User $usuario, string $numeroBoleta, string $comprobante): void
