@@ -116,9 +116,11 @@ new class extends Component implements HasForms
 ?>
 
 <div class="w-full max-w-md mx-auto mt-8">
-    <x-filament-panels::header.heading class="mb-6">
-        Registro de clientes autorizados
-    </x-filament-panels::header.heading>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
+            Registro de usuario autorizado
+        </h1>
+    </div>
 
     <form wire:submit="registrar" class="fi-form grid gap-6">
         {{ $this->form }}
