@@ -19,6 +19,7 @@ class StockByWarehouseChart extends ChartWidget
     protected function getData(): array
     {
         $saldos = $this->stockQuery()
+            ->toBase()
             ->join('almacenes', 'almacenes.almacen_id', '=', 'stock_saldos.almacen_id')
             ->select('almacenes.nombre')
             ->selectRaw('SUM(stock_saldos.cantidad_actual - stock_saldos.cantidad_reservada) as disponible')

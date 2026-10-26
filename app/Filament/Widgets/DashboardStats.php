@@ -38,6 +38,10 @@ class DashboardStats extends BaseWidget
         }
 
         if ($this->canSeeInventoryData()) {
+            $availableUnits = $this->stockQuery()
+                ->selectRaw('COALESCE(SUM(cantidad_actual - cantidad_reservada), 0) as total_disponible')
+                ->value('total_disponible');
+
             $lowStockCount = $this->stockQuery()
                 ->whereRaw('cantidad_actual - cantidad_reservada <= ?', [5])
                 ->count();
@@ -52,6 +56,8 @@ class DashboardStats extends BaseWidget
 
             $activeReservations = $activeReservationsQuery->count();
 
+            $stats[] = Stat::make('Stock disponible', number_format((int) $availableUnits))
+                ->color('success');
             $stats[] = Stat::make('Stock bajo (≤ 5 disponibles)', $lowStockCount)
                 ->color($lowStockCount > 0 ? 'danger' : 'success');
             $stats[] = Stat::make('Unidades reservadas', number_format((int) $reservedUnits))
