@@ -159,10 +159,13 @@ class PublicacionExistenciaResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('publicacion_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                // TextColumn::make('publicacion_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('numero')
                     ->label('Número')
                     ->searchable()
@@ -177,6 +180,11 @@ class PublicacionExistenciaResource extends Resource
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
+                        ->color(fn (string $state): string => match ($state) {
+                            'BORRADOR' => 'primary',
+                            'PUBLICADA' => 'success',
+                            default => 'info',
+                        })
                     ->sortable(),
                 TextColumn::make('existencias_count')
                     ->label('Items')

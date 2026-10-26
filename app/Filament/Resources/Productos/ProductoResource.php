@@ -70,7 +70,6 @@ class ProductoResource extends Resource
                 TextInput::make('unidad_medida')
                     ->label('Unidad de medida')
                     ->required()
-                    ->default('unidad')
                     ->maxLength(30),
                 TextInput::make('marca')
                     ->label('Marca')
@@ -91,10 +90,13 @@ class ProductoResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('producto_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                // TextColumn::make('producto_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('nombre')
                     ->label('Nombre')
                     ->searchable()

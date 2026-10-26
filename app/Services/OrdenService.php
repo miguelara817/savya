@@ -155,11 +155,15 @@ class OrdenService
         }, 3);
     }
 
-    public function rechazarPago(Orden $orden, User $usuario): void
+    public function rechazarPago(Orden $orden, User $usuario, string $motivo): void
     {
+        if (blank($motivo)) {
+            throw new DomainException('Debe registrar el motivo del rechazo del pago.');
+        }
+
         $comprobante = null;
 
-        DB::transaction(function () use ($orden, $usuario, &$comprobante): void {
+        DB::transaction(function () use ($orden, $usuario, $motivo, &$comprobante): void {
             $orden = $this->bloquearOrden($orden);
 
             Gate::forUser($usuario)->authorize('verificarPago', $orden);
@@ -171,13 +175,14 @@ class OrdenService
                 'numero_boleta_pago' => null,
                 'comprobante_pago' => null,
                 'pagado_en' => null,
+                'motivo_rechazo' => $motivo,
             ])->save();
 
             $this->transicionar(
                 $orden,
                 OrdenEstadoCodigo::Aprobada,
                 $usuario,
-                'Pago rechazado por ventas; el cliente debe registrar nuevamente el pago.',
+                'Pago rechazado por ventas. Motivo: '.$motivo,
             );
         }, 3);
 
