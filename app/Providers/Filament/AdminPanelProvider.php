@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->multiFactorAuthentication([
                 EmailAuthentication::make()
-                    ->codeExpiryMinutes(4)
+                    ->codeExpiryMinutes(6)
                     ->codeNotification(VerifyLoginEmail::class),
             ], isRequired: true)
             ->maxContentWidth(Width::Full)

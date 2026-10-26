@@ -7,6 +7,7 @@ use App\Filament\Resources\Ordens\OrdenResource;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardData;
 use App\Models\Orden;
 use App\Models\User;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
 class AttentionOrdersTable extends TableWidget
 {
     use InteractsWithDashboardData;
+
+    protected static ?string $heading = 'Pedidos en atención';
 
     protected static ?int $sort = 7;
 
@@ -25,8 +28,8 @@ class AttentionOrdersTable extends TableWidget
         return $table
             ->query(fn (): Builder => $this->attentionOrdersQuery())
             ->columns([
-                TextColumn::make('numero')
-                    ->label('Orden')
+                TextColumn::make('codigo_orden')
+                    ->label('Codigo de pedido')
                     ->searchable(),
                 TextColumn::make('razon_social')
                     ->label('Cliente')
@@ -41,7 +44,7 @@ class AttentionOrdersTable extends TableWidget
                     ->label('Registro')
                     ->date(),
             ])
-            ->recordUrl(fn (Orden $record): string => OrdenResource::getUrl('view', ['record' => $record]))
+            // ->recordUrl(fn (Orden $record): string => OrdenResource::getUrl('view', ['record' => $record]))
             ->defaultSort('fecha_registro', 'asc')
             ->paginated([5, 10]);
     }

@@ -59,13 +59,13 @@ class OrdenResource extends Resource
 {
     protected static ?string $model = Orden::class;
 
-    protected static ?string $slug = 'ordenes';
+    protected static ?string $slug = 'pedidos';
 
     protected static ?string $recordTitleAttribute = 'numero';
 
-    protected static ?string $modelLabel = 'orden';
+    protected static ?string $modelLabel = 'pedido';
 
-    protected static ?string $pluralModelLabel = 'órdenes';
+    protected static ?string $pluralModelLabel = 'pedidos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
@@ -356,10 +356,9 @@ class OrdenResource extends Resource
                 //     ->label('Número')
                 //     ->searchable()
                 //     ->sortable(),
-                // TextColumn::make('codigo_orden')
-                //     ->label('UUID')
-                //     ->searchable()
-                //     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('codigo_orden')
+                    ->label('Código')
+                    ->searchable(),
                 TextColumn::make('solicitante.name')
                     ->label('Solicitante')
                     ->searchable(),
@@ -553,7 +552,7 @@ class OrdenResource extends Resource
                                     $record->correo_facturacion,
                                 ]))),
                             TextInput::make('numero_boleta_pago')
-                                ->label('Número de boleta de pago')
+                                ->label('Número de voucher de pago')
                                 ->required()
                                 ->maxLength(100),
                             FileUpload::make('comprobante_pago')

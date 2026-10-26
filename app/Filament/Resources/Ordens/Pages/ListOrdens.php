@@ -19,7 +19,8 @@ class ListOrdens extends ListRecords
     {
         return [
             CreateAction::make()
-                ->modalHeading('Crear orden')
+                ->label('Crear pedido')
+                ->modalHeading('Crear pedido')
                 // ->modalWidth('7xl')
                 ->createAnother(false)
                 ->modalSubmitActionLabel('Guardar')

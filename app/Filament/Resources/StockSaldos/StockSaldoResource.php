@@ -39,10 +39,13 @@ class StockSaldoResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('stock_saldo_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                // TextColumn::make('stock_saldo_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('producto.nombre')
                     ->label('Producto')
                     ->searchable(),
