@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
             ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))
-            ->brandLogoHeight('9rem')
+            ->brandLogoHeight('8rem')
             ->colors([
                 'primary' => Color::hex('#082d44'),
                 'gray' => Color::Slate,
@@ -62,6 +62,12 @@ class AdminPanelProvider extends PanelProvider
             // ])
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render('<style>.dark .fi-topbar,.dark .fi-sidebar-header,.dark .fi-topbar-nav-groups{background-color:#082d44!important}.dark .fi-topbar,.dark .fi-sidebar-header{border-color:transparent!important}.dark .fi-simple-main,.dark .fi-main-content
             {background-color:#082d44!important}.dark .fi-simple-main-ctn{background-image:none!important}</style>'))
+             ->renderHook(
+                PanelsRenderHook::FOOTER,
+                fn (): string => Blade::render(
+                    '@include("filament.components.footer")'
+                )
+            )
             // {border-color:transparent!important}.dark .fi-simple-main,.dark .fi-body
             ->plugins([
                 FilamentShieldPlugin::make(),
