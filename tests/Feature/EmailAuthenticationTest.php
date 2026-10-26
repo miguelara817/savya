@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -16,13 +17,15 @@ beforeEach(function (): void {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 });
 
-it('requires an emailed code on every login including users who have not enabled MFA', function (): void {
+it('requires an emailed code for clients on every login', function (): void {
     Notification::fake();
     $user = User::factory()->create(['has_email_authentication' => false]);
+    $user->assignRole(Role::findOrCreate('cliente', 'web'));
 
     foreach (range(1, 2) as $attempt) {
         $login = Livewire::test(Login::class)
-            ->fillForm(['email' => $user->email, 'password' => 'password'])
+            ->set('data.email', $user->email)
+            ->set('data.password', 'password')
             ->call('authenticate')
             ->assertHasNoFormErrors()
             ->assertNoRedirect();
@@ -41,6 +44,49 @@ it('requires an emailed code on every login including users who have not enabled
     }
 
     Notification::assertSentToTimes($user, VerifyLoginEmail::class, 2);
+});
+
+it('allows operational roles to log in without an emailed code', function (string $role): void {
+    Notification::fake();
+    $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate($role, 'web'));
+
+    Livewire::test(Login::class)
+        ->set('data.email', $user->email)
+        ->set('data.password', 'password')
+        ->call('authenticate')
+        ->assertHasNoFormErrors()
+        ->assertRedirect(Filament::getUrl());
+
+    $this->assertAuthenticatedAs($user);
+    Notification::assertNothingSent();
+})->with([
+    'super_admin',
+    'administrador',
+    'responsable_inventario',
+    'encargado_ventas',
+    'encargado_almacen',
+]);
+
+it('skips email MFA for designated operational roles', function (string $role): void {
+    Role::findOrCreate($role, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    expect($user->hasEmailAuthentication())->toBeFalse();
+})->with([
+    'super_admin',
+    'administrador',
+    'responsable_inventario',
+    'encargado_ventas',
+    'encargado_almacen',
+]);
+
+it('keeps email MFA enabled for roles outside the exemption list', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate('cliente', 'web'));
+
+    expect($user->hasEmailAuthentication())->toBeTrue();
 });
 
 it('allows changing profile credentials without disabling email MFA', function (): void {
@@ -71,7 +117,8 @@ it('rejects incorrect and expired email codes', function (bool $expired): void {
     $this->freezeTime();
     $user = User::factory()->create();
     $login = Livewire::test(Login::class)
-        ->fillForm(['email' => $user->email, 'password' => 'password'])
+        ->set('data.email', $user->email)
+        ->set('data.password', 'password')
         ->call('authenticate');
     $notification = Notification::sent($user, VerifyLoginEmail::class)->sole();
     $code = $notification->code === '000000' ? '111111' : '000000';
@@ -94,7 +141,8 @@ it('does not send a code for invalid credentials', function (): void {
     $user = User::factory()->create();
 
     Livewire::test(Login::class)
-        ->fillForm(['email' => $user->email, 'password' => 'incorrect-password'])
+        ->set('data.email', $user->email)
+        ->set('data.password', 'incorrect-password')
         ->call('authenticate')
         ->assertHasFormErrors(['email']);
 
@@ -108,7 +156,8 @@ it('delivers the login email immediately even when the default queue uses the da
     $mailer = app('mailer');
 
     Livewire::test(Login::class)
-        ->fillForm(['email' => $user->email, 'password' => 'password'])
+        ->set('data.email', $user->email)
+        ->set('data.password', 'password')
         ->call('authenticate')
         ->assertHasNoFormErrors();
 
@@ -123,7 +172,8 @@ it('accepts the emailed code when the challenge is stored in the database cache'
     Notification::fake();
     $user = User::factory()->create();
     $login = Livewire::test(Login::class)
-        ->fillForm(['email' => $user->email, 'password' => 'password'])
+        ->set('data.email', $user->email)
+        ->set('data.password', 'password')
         ->call('authenticate')
         ->assertHasNoFormErrors()
         ->assertNoRedirect();
@@ -143,7 +193,8 @@ it('keeps partial codes local and accepts the complete code only after confirmat
     Notification::fake();
     $user = User::factory()->create();
     $login = Livewire::test(Login::class)
-        ->fillForm(['email' => $user->email, 'password' => 'password'])
+        ->set('data.email', $user->email)
+        ->set('data.password', 'password')
         ->call('authenticate');
     $notification = Notification::sent($user, VerifyLoginEmail::class)->sole();
 
