@@ -29,6 +29,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -334,6 +335,40 @@ test('rechazar registra el motivo y no deja reservas activas', function (): void
         ->and(ReservaStock::query()->where('estado', ReservaStock::ESTADO_ACTIVA)->count())->toBe(0)
         ->and($orden->historialEstados()->latest('orden_historial_estado_id')->first()?->observaciones)
         ->toContain('Documentación incompleta.');
+});
+
+test('rechazar un pago guarda el motivo para el cliente y devuelve la orden a aprobada', function (): void {
+    $cliente = usuarioConRol('cliente');
+    $ventas = usuarioConRol('encargado_ventas');
+    $almacen = Almacen::factory()->create();
+    $producto = Producto::factory()->create();
+    $publicacion = crearPublicacion($ventas);
+    $existencia = crearExistencia($publicacion, $producto, $almacen);
+    crearSaldo($producto, $almacen, existencia: $existencia);
+    $orden = crearOrden($cliente, $almacen, [
+        ['existencia' => $existencia, 'cantidad' => 5],
+    ], OrdenEstadoCodigo::Pagado);
+    $orden->forceFill([
+        'numero_boleta_pago' => 'VOUCHER-123',
+        'comprobante_pago' => 'comprobantes/ordenes/voucher.pdf',
+        'pagado_en' => now(),
+    ])->save();
+
+    Storage::fake('local');
+    Storage::disk('local')->put('comprobantes/ordenes/voucher.pdf', 'voucher');
+
+    app(OrdenService::class)->rechazarPago($orden, $ventas, 'El comprobante no es legible.');
+
+    $ordenActualizada = $orden->fresh();
+    $this->actingAs($cliente);
+
+    expect($ordenActualizada->estadoCodigo())->toBe(OrdenEstadoCodigo::Aprobada->value)
+        ->and($ordenActualizada->motivo_rechazo)->toBe('El comprobante no es legible.')
+        ->and($ordenActualizada->numero_boleta_pago)->toBeNull()
+        ->and($ordenActualizada->comprobante_pago)->toBeNull()
+        ->and(Gate::forUser($cliente)->allows('verMotivoRechazo', $ordenActualizada))->toBeTrue();
+
+    Storage::disk('local')->assertMissing('comprobantes/ordenes/voucher.pdf');
 });
 
 test('preparar una salida en borrador no descuenta stock ni crea movimientos', function (): void {

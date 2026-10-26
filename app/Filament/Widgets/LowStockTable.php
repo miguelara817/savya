@@ -15,6 +15,8 @@ class LowStockTable extends TableWidget
 {
     use InteractsWithDashboardData;
 
+    protected static ?string $heading = 'Stock bajo';
+
     protected static ?int $sort = 8;
 
     protected int|string|array $columnSpan = 'full';

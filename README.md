@@ -82,11 +82,54 @@ El seeder crea el usuario administrador usando `ADMIN_NAME`, `ADMIN_EMAIL` y `AD
 
 ## Iniciar la aplicación
 
-En una terminal:
+### Configuración de archivos temporales en PHP (Windows/Herd)
+
+Livewire necesita que PHP pueda crear archivos temporales tanto al recibir una subida como al procesarla. En instalaciones de Windows con Herd, si al subir un archivo aparecen errores como `unable to create a temporary file` o `stream_get_meta_data(): Argument #1 ($stream) must be of type resource, false given`, configura estas directivas en el `php.ini` de la versión de PHP que usa Herd (por ejemplo, `C:\Users\<usuario>\.config\herd\bin\php84\php.ini`):
+
+```ini
+upload_tmp_dir = "C:\\Users\\<usuario>\\AppData\\Local\\Temp"
+sys_temp_dir = "C:\\Users\\<usuario>\\AppData\\Local\\Temp"
+```
+
+Reemplaza `<usuario>` por el nombre de la cuenta de Windows y confirma que la carpeta existe y permite escritura. Reinicia Herd/PHP para aplicar los cambios. Verifica la configuración activa con `php --ini` y `php -i` (las directivas deben apuntar a la carpeta temporal). Si `php --ini` muestra otro `php.ini`, modifica ese archivo en lugar del ejemplo.
+
+Después, en una terminal:
 
 ```bash
 php artisan serve
 ```
+
+### Errores de archivos temporales en Linux
+
+El error también puede ocurrir en Ubuntu o Debian si el directorio temporal configurado para PHP no existe, está lleno o el usuario del proceso web no tiene permisos de escritura. Normalmente PHP usa `/tmp`; no hace falta cambiar `php.ini` si ese directorio funciona.
+
+Comprueba la configuración de la versión de PHP que utiliza el servidor web (no solo la CLI) con `php --ini` y `php -i`, y valida el directorio temporal:
+
+```bash
+php --ini
+php -i | grep -E '^(upload_tmp_dir|sys_temp_dir|upload_max_filesize|post_max_size)'
+ls -ld /tmp
+df -h /tmp
+```
+
+`/tmp` normalmente debe tener permisos `drwxrwxrwt` (modo `1777`). Si los permisos están incorrectos, un administrador puede restaurarlos con:
+
+```bash
+sudo chmod 1777 /tmp
+```
+
+Si `/tmp` no está disponible para el servicio PHP, crea un directorio temporal dedicado, asígnalo al usuario que ejecuta PHP-FPM (frecuentemente `www-data` en Ubuntu/Debian) y configúralo en el `php.ini` correspondiente:
+
+```bash
+sudo install -d -o www-data -g www-data -m 700 /var/lib/php/uploads
+```
+
+```ini
+upload_tmp_dir = "/var/lib/php/uploads"
+sys_temp_dir = "/var/lib/php/uploads"
+```
+
+Reinicia PHP-FPM y el servidor web para aplicar los cambios (por ejemplo, `sudo systemctl restart php8.4-fpm` y, si aplica, `sudo systemctl reload nginx`). Ajusta el nombre del servicio a la versión instalada. En Docker, verifica que el directorio exista y tenga permisos para el usuario del contenedor; los cambios locales a `php.ini` no necesariamente se aplican dentro del contenedor.
 
 Visita `http://localhost:8000/admin` e inicia sesión con el correo y contraseña definidos en `.env`. El panel requiere verificación multifactor por correo. Mailpit recibe los mensajes SMTP en `http://localhost:1025`; abre su interfaz web en **http://localhost:8025** para consultar el código de verificación y otros correos enviados durante el desarrollo.
 

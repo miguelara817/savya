@@ -36,9 +36,10 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->profile()
+            ->favicon(asset('images/favicon.jpeg'))
             ->multiFactorAuthentication([
                 EmailAuthentication::make()
-                    ->codeExpiryMinutes(4)
+                    ->codeExpiryMinutes(6)
                     ->codeNotification(VerifyLoginEmail::class),
             ], isRequired: true)
             ->maxContentWidth(Width::Full)

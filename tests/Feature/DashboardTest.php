@@ -3,6 +3,8 @@
 use App\Enums\OrdenEstadoCodigo;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\AttentionOrdersTable;
+use App\Filament\Widgets\DashboardStats;
+use App\Filament\Widgets\StockByWarehouseChart;
 use App\Models\Almacen;
 use App\Models\Orden;
 use App\Models\OrdenEstado;
@@ -75,4 +77,32 @@ it('filters stock dashboard chart by warehouse without ambiguous columns', funct
     Livewire::test(Dashboard::class)
         ->fillForm(['almacen_id' => $almacen->getKey(), 'periodo' => '30_dias'])
         ->assertOk();
+
+    Livewire::test(StockByWarehouseChart::class)
+        ->assertSee('17');
+});
+
+it('shows total available stock across all warehouses', function (): void {
+    $responsable = User::factory()->create();
+    $responsable->assignRole('responsable_inventario');
+    $almacenSeleccionado = Almacen::factory()->create();
+    $otroAlmacen = Almacen::factory()->create();
+    $producto = Producto::factory()->create();
+    StockSaldo::query()->create([
+        'producto_id' => $producto->getKey(),
+        'almacen_id' => $almacenSeleccionado->getKey(),
+        'cantidad_actual' => 20,
+        'cantidad_reservada' => 3,
+    ]);
+    StockSaldo::query()->create([
+        'producto_id' => $producto->getKey(),
+        'almacen_id' => $otroAlmacen->getKey(),
+        'cantidad_actual' => 100,
+        'cantidad_reservada' => 10,
+    ]);
+    $this->actingAs($responsable);
+
+    Livewire::test(DashboardStats::class)
+        ->assertSee('Stock disponible')
+        ->assertSee('107');
 });

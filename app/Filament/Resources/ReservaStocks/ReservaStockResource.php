@@ -79,12 +79,18 @@ class ReservaStockResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('reserva_stock_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('reserva_stock_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                TextColumn::make('ordenProducto.orden.codigo_orden')
+                    ->label('Código')
+                    ->searchable(),
                 TextColumn::make('ordenProducto.orden.solicitante.name')
-                    ->label('Orden')
+                    ->label('Solicitante')
                     ->searchable(),
                 TextColumn::make('producto.nombre')
                     ->label('Producto')

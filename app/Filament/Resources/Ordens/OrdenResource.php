@@ -59,13 +59,13 @@ class OrdenResource extends Resource
 {
     protected static ?string $model = Orden::class;
 
-    protected static ?string $slug = 'ordenes';
+    protected static ?string $slug = 'pedidos';
 
     protected static ?string $recordTitleAttribute = 'numero';
 
-    protected static ?string $modelLabel = 'orden';
+    protected static ?string $modelLabel = 'pedido';
 
-    protected static ?string $pluralModelLabel = 'órdenes';
+    protected static ?string $pluralModelLabel = 'pedidos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
@@ -181,9 +181,9 @@ class OrdenResource extends Resource
                                             ->get()
                                             ->mapWithKeys(fn (StockSaldo $saldo): array => [
                                                 $saldo->existencia_vigente_id => sprintf(
-                                                    '%s — Bs %s',
+                                                    '%s — %s',
                                                     $saldo->producto?->nombre ?? 'Producto',
-                                                    number_format((float) $saldo->precio_venta, 2)
+                                                    $saldo->producto->presentacion
                                                 ),
                                             ])
                                             ->all();
@@ -356,10 +356,9 @@ class OrdenResource extends Resource
                 //     ->label('Número')
                 //     ->searchable()
                 //     ->sortable(),
-                // TextColumn::make('codigo_orden')
-                //     ->label('UUID')
-                //     ->searchable()
-                //     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('codigo_orden')
+                    ->label('Código')
+                    ->searchable(),
                 TextColumn::make('solicitante.name')
                     ->label('Solicitante')
                     ->searchable(),
@@ -385,7 +384,17 @@ class OrdenResource extends Resource
                     ->label('Almacén'),
                 TextColumn::make('estado.nombre')
                     ->label('Estado')
-                    ->badge(),
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Pendiente de aprobación' => 'primary',
+                        'Aprobada, pago pendiente' => 'warning',
+                        'Pago verificado' => 'success',
+                        'Pagado' => 'warning',
+                        'Cancelado' => 'gray',
+                        'Rechazada' => 'danger',
+                        'Completada' => 'success',
+                        default => 'primary',
+                    }),
                 TextColumn::make('productos_count')
                     ->label('Productos')
                     ->counts('productos')
@@ -408,15 +417,15 @@ class OrdenResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('fecha_efectivizacion')
-                    ->label('Fecha de efectivización')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('observaciones')
-                    ->label('Observaciones')
-                    ->limit(50)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('fecha_efectivizacion')
+                //     ->label('Fecha de efectivización')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('observaciones')
+                //     ->label('Observaciones')
+                //     ->limit(50)
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 // TextColumn::make('firma_cliente_nombre')
                 //     ->label('Firmante')
                 //     ->searchable()
@@ -433,21 +442,21 @@ class OrdenResource extends Resource
                 //     ->dateTime()
                 //     ->sortable()
                 //     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->label('Eliminado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('created_at')
+                //     ->label('Creado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('updated_at')
+                //     ->label('Actualizado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('deleted_at')
+                //     ->label('Eliminado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -474,7 +483,11 @@ class OrdenResource extends Resource
                         ->modalCancelActionLabel('Cerrar')
                         ->authorize(fn (Orden $record): bool => auth()->user()?->can('verMotivoRechazo', $record) ?? false)
                         ->visible(fn (Orden $record): bool => filled($record->motivo_rechazo)
-                            && $record->estaEnEstado(OrdenEstadoCodigo::Rechazada, OrdenEstadoCodigo::Cancelada))
+                            && $record->estaEnEstado(
+                                OrdenEstadoCodigo::Rechazada,
+                                OrdenEstadoCodigo::Cancelada,
+                                OrdenEstadoCodigo::Aprobada,
+                            ))
                         ->schema([
                             Placeholder::make('motivo_rechazo')
                                 ->label('Motivo registrado por ventas')
@@ -553,7 +566,7 @@ class OrdenResource extends Resource
                                     $record->correo_facturacion,
                                 ]))),
                             TextInput::make('numero_boleta_pago')
-                                ->label('Número de boleta de pago')
+                                ->label('Número de voucher de pago')
                                 ->required()
                                 ->maxLength(100),
                             FileUpload::make('comprobante_pago')
@@ -638,17 +651,41 @@ class OrdenResource extends Resource
                                 ->previewable(),
                         ])
                         ->extraModalFooterActions(fn (Action $action): array => [
-                            $action->makeModalSubmitAction('rechazarPago', arguments: ['rechazarPago' => true])
+                            Action::make('rechazarPago')
                                 ->label('Rechazar pago')
-                                ->color('danger'),
+                                ->color('danger')
+                                ->schema([
+                                    Textarea::make('motivo')
+                                        ->label('Motivo del rechazo del pago')
+                                        ->required()
+                                        ->rows(3)
+                                        ->maxLength(1000),
+                                ])
+                                ->modalHeading('Rechazar pago')
+                                ->modalSubmitActionLabel('Rechazar pago')
+                                ->action(function (Orden $record, array $data): void {
+                                    try {
+                                        app(OrdenService::class)->rechazarPago(
+                                            $record,
+                                            self::usuarioActual(),
+                                            $data['motivo'],
+                                        );
+                                    } catch (DomainException $exception) {
+                                        self::notificarError($exception);
+
+                                        return;
+                                    }
+
+                                    Notification::make()
+                                        ->title('Pago rechazado')
+                                        ->success()
+                                        ->send();
+                                })
+                                ->cancelParentActions(),
                         ])
-                        ->action(function (Orden $record, array $arguments): void {
+                        ->action(function (Orden $record): void {
                             try {
-                                if ($arguments['rechazarPago'] ?? false) {
-                                    app(OrdenService::class)->rechazarPago($record, self::usuarioActual());
-                                } else {
-                                    app(OrdenService::class)->verificarPago($record, self::usuarioActual());
-                                }
+                                app(OrdenService::class)->verificarPago($record, self::usuarioActual());
                             } catch (DomainException $exception) {
                                 self::notificarError($exception);
 
@@ -656,7 +693,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title(($arguments['rechazarPago'] ?? false) ? 'Pago rechazado' : 'Pago verificado')
+                                ->title('Pago verificado')
                                 ->success()
                                 ->send();
                         }),
@@ -782,7 +819,7 @@ class OrdenResource extends Resource
         return [
             'index' => ListOrdens::route('/'),
             // 'create' => CreateOrden::route('/create'),
-            'view' => ViewOrden::route('/{record}'),
+            // 'view' => ViewOrden::route('/{record}'),
             // 'edit' => EditOrden::route('/{record}/edit'),
         ];
     }

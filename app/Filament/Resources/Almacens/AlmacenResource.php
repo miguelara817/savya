@@ -68,10 +68,13 @@ class AlmacenResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('almacen_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
+                // TextColumn::make('almacen_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('nombre')
                     ->label('Nombre')
                     ->searchable()

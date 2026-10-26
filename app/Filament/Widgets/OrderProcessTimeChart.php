@@ -57,7 +57,10 @@ class OrderProcessTimeChart extends ChartWidget
                 $previousTimestamp = CarbonImmutable::parse($previousTimestamp);
 
                 if ($currentTimestamp->lessThan($previousTimestamp)) {
-                    break;
+                    $previousTimestamp = $currentTimestamp;
+                    $eventIndex = $events->search($event) + 1;
+
+                    continue;
                 }
 
                 $stageSeconds[$stageIndex] += $previousTimestamp->diffInSeconds($currentTimestamp);

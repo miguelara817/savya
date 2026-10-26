@@ -87,7 +87,8 @@ class RolesPermisosSeeder extends Seeder
             'encargado_almacen' => [
                 'ViewAny:Orden', 'View:Orden', 'Update:Orden', 'Entregar:Orden',
                 'ViewAny:OrdenProducto', 'View:OrdenProducto',
-                'ViewAny:SalidaAlmacen', 'View:SalidaAlmacen', 'Create:SalidaAlmacen', 'Confirmar:SalidaAlmacen',
+                'ViewAny:SalidaAlmacen', 'View:SalidaAlmacen',
+                // 'Create:SalidaAlmacen', 'Confirmar:SalidaAlmacen',
                 'ViewAny:Entrega', 'View:Entrega', 'Confirmar:Entrega',
                 // 'ViewAny:SalidaDetalle', 'View:SalidaDetalle', 'Create:SalidaDetalle', 'Update:SalidaDetalle', 'Delete:SalidaDetalle',
                 // 'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
