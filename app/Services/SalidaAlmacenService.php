@@ -32,7 +32,9 @@ class SalidaAlmacenService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            Gate::forUser($usuario)->authorize('create', SalidaAlmacen::class);
+            if (! $usuario->can('create', SalidaAlmacen::class) && ! $usuario->can('Entregar:Orden')) {
+                Gate::forUser($usuario)->authorize('create', SalidaAlmacen::class);
+            }
 
             if (! $orden->estaEnCurso()) {
                 throw new DomainException('Solo se puede preparar una salida para una orden aprobada o parcialmente atendida.');

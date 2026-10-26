@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\OrdenEstadoCodigo;
 use App\Models\SalidaAlmacen;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -41,8 +42,10 @@ class SalidaAlmacenPolicy
 
     public function confirmar(AuthUser $authUser, SalidaAlmacen $salidaAlmacen): bool
     {
-        return $authUser->can('Confirmar:SalidaAlmacen')
-            && $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR;
+        return $salidaAlmacen->estado === SalidaAlmacen::ESTADO_BORRADOR
+            && ($authUser->can('Confirmar:SalidaAlmacen')
+                || ($authUser->can('Entregar:Orden')
+                    && $salidaAlmacen->orden?->estaEnEstado(OrdenEstadoCodigo::Verificado)));
     }
 
     public function deleteAny(AuthUser $authUser): bool
