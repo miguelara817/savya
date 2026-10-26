@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 EmailAuthentication::make()
                     ->codeExpiryMinutes(6)
                     ->codeNotification(VerifyLoginEmail::class),
-            ], isRequired: true)
+            ], isRequired: false)
             ->maxContentWidth(Width::Full)
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
             ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))

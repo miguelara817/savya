@@ -29,12 +29,12 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
             && $this->hasAnyRole([
                 'super_admin',
                 'administrador',
+                'responsable_inventario',
                 'cliente',
                 'encargado_ventas',
-                'encargado_almacen'
+                'encargado_almacen',
             ]);
     }
-
 
     /**
      * @return BelongsTo<Persona, $this>
@@ -46,6 +46,16 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
 
     public function hasEmailAuthentication(): bool
     {
+        if ($this->hasAnyRole([
+            'super_admin',
+            'administrador',
+            'responsable_inventario',
+            'encargado_ventas',
+            'encargado_almacen',
+        ])) {
+            return false;
+        }
+
         return true;
     }
 
