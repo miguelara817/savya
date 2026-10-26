@@ -21,6 +21,19 @@ class User extends Authenticatable implements HasEmailAuthentication
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, InteractsWithEmailAuthentication, Notifiable;
 
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $panel->getId() === 'admin'
+            && $this->hasAnyRole([
+                'super_admin',
+                'administrador',
+                'cliente',
+                'encargado_ventas',
+                'encargado_almacen'
+            ]);
+    }
+
+
     /**
      * @return BelongsTo<Persona, $this>
      */
