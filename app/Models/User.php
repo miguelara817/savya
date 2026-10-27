@@ -33,6 +33,7 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
                 'cliente',
                 'encargado_ventas',
                 'encargado_almacen',
+                'cliente_ad'
             ]);
     }
 
@@ -52,6 +53,7 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
             'responsable_inventario',
             'encargado_ventas',
             'encargado_almacen',
+            'cliente_ad'
         ])) {
             return false;
         }
