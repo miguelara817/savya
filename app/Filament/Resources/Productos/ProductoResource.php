@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,6 +22,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -29,6 +31,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ProductoResource extends Resource
 {
@@ -60,8 +63,7 @@ class ProductoResource extends Resource
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state))),
                 TextInput::make('slug')
                     ->label('Slug')
-                    ->maxLength(200)
-                    ->unique(ignoreRecord: true),
+                    ->maxLength(200),
                 TextInput::make('codigo')
                     ->label('Código')
                     ->maxLength(50)
@@ -90,6 +92,25 @@ class ProductoResource extends Resource
                 Textarea::make('caracteristicas')
                     ->label('Características')
                     ->columnSpanFull(),
+                FileUpload::make('imagen_producto')
+                    ->label('Imagen del producto')
+                    ->disk('public')
+                    ->directory('productos')
+                    ->visibility('public')
+                    ->image()
+                    ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file, $get) : string {
+                        $slug = $get('slug') ?? 'producto';
+                        $extension = $file->guessExtension() ?? 'bin';
+                        return sprintf(
+                            '%s-%s.%s',
+                            $slug,
+                            now()->format('YmdHis'),
+                            $extension 
+                        );
+                    })
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->maxSize(10240)
+                    ->columnSpanFull(),
                 Toggle::make('is_active')
                     ->label('Activo')
                     ->default(true),
@@ -111,6 +132,12 @@ class ProductoResource extends Resource
                     ->label('Nombre')
                     ->searchable()
                     ->sortable(),
+                ImageColumn::make('imagen_producto')
+                    ->label('Imagen del Producto')
+                    ->disk('public')
+                    ->visibility('public')
+                    ->square()
+                    ->size(100),
                 TextColumn::make('codigo')
                     ->label('Código')
                     ->searchable(),

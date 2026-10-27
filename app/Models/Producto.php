@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'presentacion',
     'caracteristicas',
     'unidad_medida',
+    'imagen_producto',
     'is_active',
 ])]
 class Producto extends Model
