@@ -57,7 +57,8 @@ class RolesPermisosSeeder extends Seeder
                 'ViewAny:StockSaldo', 'View:StockSaldo',
                 'ViewAny:ReservaStock', 'View:ReservaStock',
                 // 'ViewAny:Movimiento', 'View:Movimiento', 'ViewAny:MovimientoDetalle', 'View:MovimientoDetalle',
-                'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update:Producto', 'Delete:Producto',
+                'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update:Producto',
+                // 'Delete:Producto',
                 'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             ],
             'cliente' => [
