@@ -158,6 +158,31 @@ mkdir -p /var/www/savya/shared/storage/app/private \
   /var/www/savya/shared/storage/logs
 ```
 
+**Importante:** `storage` debe ser un enlace simbólico, no un directorio creado dentro del release. El comando anterior fallará si `$RELEASE_PATH/storage` ya existe como directorio. Comprueba el resultado antes de continuar:
+
+```bash
+ls -ld "$RELEASE_PATH/storage"
+readlink -f "$RELEASE_PATH/storage"
+```
+
+La segunda salida debe ser `/var/www/savya/shared/storage`. En una instalación nueva, crea el enlace antes de ejecutar Artisan o aceptar cargas de archivos. Si se desplegó inicialmente sin el enlace y no hay archivos que conservar, un administrador puede sustituir el directorio local por el enlace así:
+
+```bash
+sudo rm -rf -- "$RELEASE_PATH/storage"
+sudo -u deploy ln -s /var/www/savya/shared/storage "$RELEASE_PATH/storage"
+```
+
+No ejecutes el borrado si necesitas conservar archivos. Cópialos primero a `shared/storage` y confirma que quedaron en el destino correcto. Si no tienes permisos `sudo`, solicita a un administrador que realice la corrección. `sudo -u deploy` por sí solo no eleva permisos: ejecuta el comando como el usuario `deploy`.
+
+El disco `public` de Laravel tiene como raíz `storage/app/public`; por tanto, las imágenes de productos guardadas en el disco público quedan en `shared/storage/app/public/productos`. El enlace web debe apuntar a esa raíz (no a `shared/storage`):
+
+```bash
+ln -sfn /var/www/savya/shared/storage/app/public "$RELEASE_PATH/public/storage"
+readlink -f "$RELEASE_PATH/public/storage"
+```
+
+La última salida debe ser `/var/www/savya/shared/storage/app/public`. Crea las carpetas persistentes dentro de `shared/storage`, no dentro del release.
+
 Edita `/var/www/savya/shared/.env`. Cambia SQLite por PostgreSQL y deja los valores de producción:
 
 ```dotenv
@@ -231,11 +256,15 @@ npm run build
 
 Node debe ser `20.19.0` o posterior compatible con Vite 8. Si el paquete `nodejs` de Ubuntu es más antiguo, compila los assets en CI con Node 22.12+ o Node 24 y despliega también `public/build`.
 
-El proyecto guarda comprobantes en `storage`; el enlace del release conserva ese directorio compartido. Para que los archivos públicos sigan accesibles aunque se retiren releases antiguos, enlaza el disco público directamente a `shared`:
+El proyecto guarda archivos subidos con el disco `public`, cuya raíz es `storage/app/public`; las imágenes de productos quedan en `storage/app/public/productos`. El enlace `storage` del release apunta a `shared/storage`, por lo que este directorio es persistente entre publicaciones. Enlaza `public/storage` a la raíz real del disco público para que las URL `/storage/...` sigan funcionando aunque se retiren releases antiguos. El primer enlace debe haberse creado en el paso 6; compruébalo antes de continuar:
 
 ```bash
 ln -sfn /var/www/savya/shared/storage/app/public "$RELEASE_PATH/public/storage"
+readlink -f "$RELEASE_PATH/storage"
+readlink -f "$RELEASE_PATH/public/storage"
 ```
+
+Las salidas esperadas son `/var/www/savya/shared/storage` y `/var/www/savya/shared/storage/app/public`, respectivamente. No configures `public/storage` hacia `shared/storage` directamente: ese nivel contiene `app/public`, no los archivos del disco público. La ruta correcta para productos es `/var/www/savya/shared/storage/app/public/productos`.
 
 ## 8. Migraciones, permisos y cuenta administradora
 
@@ -431,7 +460,7 @@ Antes de anunciar el sistema, inicia sesión con el administrador, completa el d
 Para cada versión:
 
 1. Crea un nuevo directorio en `releases` y clona el commit/tag que vas a publicar.
-2. Enlaza `shared/.env` y `shared/storage` al release.
+2. Enlaza `shared/.env` y `shared/storage` al release, y enlaza `public/storage` a `/var/www/savya/shared/storage/app/public`.
 3. Ejecuta `composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader` y compila/copia `public/build`.
 4. Haz un respaldo antes de migraciones que cambien o eliminen datos.
 5. Ejecuta `php artisan migrate --force` y `php artisan optimize`.

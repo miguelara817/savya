@@ -64,6 +64,7 @@ class ProductoResource extends Resource
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state))),
                 TextInput::make('slug')
                     ->label('Slug')
+                    ->required()
                     ->maxLength(200),
                 TextInput::make('codigo')
                     ->label('Código')
