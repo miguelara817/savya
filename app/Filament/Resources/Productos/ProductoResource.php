@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -20,6 +21,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -63,14 +65,22 @@ class ProductoResource extends Resource
                 TextInput::make('codigo')
                     ->label('Código')
                     ->maxLength(50)
+                    ->required()
                     ->unique(ignoreRecord: true),
                 TextInput::make('presentacion')
                     ->label('Presentación')
                     ->maxLength(50),
-                TextInput::make('unidad_medida')
+                // TextInput::make('unidad_medida')
+                //     ->label('Unidad de medida')
+                //     ->required()
+                //     ->maxLength(30),
+                Select::make('unidad_medida')
                     ->label('Unidad de medida')
-                    ->required()
-                    ->maxLength(30),
+                    ->options([
+                        'kg' => 'Kilogramo [kg]',
+                        'qq' => 'Quintal [qq]',
+                    ])
+                    ->required(),
                 TextInput::make('marca')
                     ->label('Marca')
                     ->maxLength(50),
