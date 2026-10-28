@@ -135,6 +135,10 @@ class OrdenResource extends Resource
                             ->preload()
                             ->required()
                             ->live()
+                            ->afterStateUpdated(function (Set $set): void {
+                                    // Reiniciar los productos seleccionados
+                                    $set('productos', []);
+                                })
                             ->disabled(fn (string $operation): bool => $operation !== 'create')
                             ->dehydrated(),
                         DateTimePicker::make('fecha_registro')
