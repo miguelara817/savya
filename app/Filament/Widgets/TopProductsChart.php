@@ -68,7 +68,7 @@ class TopProductsChart extends ChartWidget
         $user = auth()->user();
 
         return $user instanceof User && $user->hasAnyRole([
-            'super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen', 'responsable_inventario', 'cliente',
+            'super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen', 'responsable_inventario', 'cliente', 'cliente_ad',
         ]);
     }
 }
