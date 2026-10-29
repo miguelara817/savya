@@ -16,10 +16,12 @@ use App\Models\SalidaDetalle;
 use App\Models\StockSaldo;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class OrdenService
 {
@@ -138,13 +140,23 @@ class OrdenService
         }, 3);
     }
 
-    public function verificarPago(Orden $orden, User $usuario): void
+    public function verificarPago(Orden $orden, User $usuario, string $fechaTetativaEntrega): void
     {
-        DB::transaction(function () use ($orden, $usuario): void {
+        DB::transaction(function () use ($orden, $usuario, $fechaTetativaEntrega): void {
             $orden = $this->bloquearOrden($orden);
 
             Gate::forUser($usuario)->authorize('verificarPago', $orden);
             $this->asegurarEstado($orden, [OrdenEstadoCodigo::Pagado]);
+
+            $fecha = Carbon::createFromFormat('!Y-m-d', $fechaTetativaEntrega);
+            if (! $fecha || $fecha->format('Y-m-d') !== $fechaTetativaEntrega) {
+                throw ValidationException::withMessages([
+                    'fecha_pago' => 'La fecha de pago no es válida.',
+                ]);
+            }
+
+            $orden->fecha_entrega_tentativa = $fecha->toDateString();
+            $orden->save();
 
             $this->transicionar(
                 $orden,

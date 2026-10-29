@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'comprobante_pago',
     'pagado_en',
     'motivo_rechazo',
+    'fecha_entrega_tentativa',
 ])]
 class Orden extends Model
 {
