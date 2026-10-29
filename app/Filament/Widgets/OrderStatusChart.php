@@ -14,9 +14,9 @@ class OrderStatusChart extends ChartWidget
 
     protected static ?int $sort = 2;
 
-    protected ?string $heading = 'Órdenes por estado';
+    protected ?string $heading = 'Pedidos por estado';
 
-    protected ?string $description = 'Distribución de las órdenes del período seleccionado.';
+    protected ?string $description = 'Distribución de pedidos del período seleccionado.';
 
     protected function getData(): array
     {

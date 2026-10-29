@@ -26,7 +26,7 @@ class DashboardStats extends BaseWidget
                     ->whereHas('estado', fn (Builder $query) => $query->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value))
                     ->count())
                     ->color('warning'),
-                Stat::make($this->isClientOnly() ? 'Mis órdenes por pagar' : 'Monto por cobrar', 'Bs '.number_format((float) $this->ordersQuery()
+                Stat::make($this->isClientOnly() ? 'Mis pedidos por pagar' : 'Monto por cobrar', 'Bs '.number_format((float) $this->ordersQuery()
                     ->whereHas('estado', fn (Builder $query) => $query->where('codigo', OrdenEstadoCodigo::Aprobada->value))
                     ->sum('precio_total'), 2, ',', '.'))
                     ->color('success'),
@@ -77,7 +77,7 @@ class DashboardStats extends BaseWidget
         }
 
         if ($this->isClientOnly()) {
-            $stats[] = Stat::make('Mis órdenes activas', $this->ordersQuery()
+            $stats[] = Stat::make('Mis pedidos activos', $this->ordersQuery()
                 ->whereHas('estado', fn (Builder $query) => $query->whereIn('codigo', [
                     OrdenEstadoCodigo::Aprobada->value,
                     OrdenEstadoCodigo::Pagado->value,
