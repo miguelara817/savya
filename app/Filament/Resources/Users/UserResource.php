@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Models\Persona;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -19,6 +20,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserResource extends Resource
 {
@@ -63,8 +65,17 @@ class UserResource extends Resource
                     ->required(fn (string $operation): bool => $operation === 'create'),
                 Select::make('persona_id')
                     ->label('Persona')
-                    ->relationship('persona', 'nombre')
-                    ->searchable()
+                    // ->relationship('persona', 'nombre')
+                    ->relationship(
+                        name: 'persona',
+                        titleAttribute: 'nombre',
+                        modifyQueryUsing: fn (Builder $query) => $query
+                            ->where('is_active', true)
+                    )
+                    ->getOptionLabelFromRecordUsing(
+                        fn (Persona $record): string => "{$record->nombre} {$record->apellido}"
+                    )
+                    ->searchable(['nombre', 'apellido'])
                     ->preload(),
                 Select::make('roles')
                     ->label('Roles')

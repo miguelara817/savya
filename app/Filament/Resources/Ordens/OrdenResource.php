@@ -20,6 +20,7 @@ use App\Services\OrdenService;
 use App\Services\SalidaAlmacenService;
 use App\Support\DocumentoNumero;
 use BackedEnum;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -165,82 +166,83 @@ class OrdenResource extends Resource
                             ->minItems(1)
                             ->defaultItems(0)
                             ->schema([
-                            Select::make('existencia_id')
-                                ->label('Producto con precio vigente')
-                                ->options(function (Get $get): array {
-                                    $almacenId = $get('../../almacen_id');
+                                Select::make('existencia_id')
+                                    ->label('Producto con precio vigente')
+                                    ->options(function (Get $get): array {
+                                        $almacenId = $get('../../almacen_id');
 
-                                    if (! $almacenId) {
-                                        return [];
-                                    }
+                                        if (! $almacenId) {
+                                            return [];
+                                        }
 
-                                    return StockSaldo::query()
-                                        ->with(['producto', 'existenciaVigente.publicacion'])
-                                        ->where('almacen_id', $almacenId)
-                                        ->whereNotNull('precio_venta')
-                                        ->whereNotNull('existencia_vigente_id')
-                                        ->whereHas('producto', fn (Builder $query): Builder => $query->where('is_active', true))
-                                        ->whereHas('existenciaVigente.publicacion', fn (Builder $query): Builder => $query
-                                            ->where('estado', PublicacionExistencia::ESTADO_PUBLICADA))
-                                        ->orderBy('producto_id')
-                                        ->get()
-                                        ->mapWithKeys(fn (StockSaldo $saldo): array => [
-                                            $saldo->existencia_vigente_id => sprintf(
-                                                '%s — %s',
-                                                $saldo->producto?->nombre ?? 'Producto',
-                                                $saldo->producto->presentacion
-                                            ),
-                                        ])
-                                        ->all();
-                                })
-                                ->searchable()
-                                ->required()
-                                ->live()
-                                ->afterStateUpdated(function (?int $state, Set $set): void {
-                                    $saldo = $state
-                                        ? StockSaldo::query()->where('existencia_vigente_id', $state)->first()
-                                        : null;
+                                        return StockSaldo::query()
+                                            ->with(['producto', 'existenciaVigente.publicacion'])
+                                            ->where('almacen_id', $almacenId)
+                                            ->whereNotNull('precio_venta')
+                                            ->whereNotNull('existencia_vigente_id')
+                                            ->whereHas('producto', fn (Builder $query): Builder => $query->where('is_active', true))
+                                            ->whereHas('existenciaVigente.publicacion', fn (Builder $query): Builder => $query
+                                                ->where('estado', PublicacionExistencia::ESTADO_PUBLICADA))
+                                            ->orderBy('producto_id')
+                                            ->get()
+                                            ->mapWithKeys(fn (StockSaldo $saldo): array => [
+                                                $saldo->existencia_vigente_id => sprintf(
+                                                    '%s — %s',
+                                                    $saldo->producto?->nombre ?? 'Producto',
+                                                    $saldo->producto->presentacion
+                                                ),
+                                            ])
+                                            ->all();
+                                    })
+                                    ->searchable()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function (?int $state, Set $set): void {
+                                        $saldo = $state
+                                            ? StockSaldo::query()->where('existencia_vigente_id', $state)->first()
+                                            : null;
 
-                                    if ($saldo) {
-                                        $set('producto_id', $saldo->producto_id);
-                                        $set('precio_unitario', $saldo->precio_venta);
-                                    } else {
-                                        $set('producto_id', null);
-                                        $set('precio_unitario', null);
-                                    }
-                                })
-                                ->columnSpan(2),
-                            Hidden::make('producto_id')
-                                ->required(),
-                            TextInput::make('cantidad_solicitada')
-                                ->label('Cantidad')
-                                ->integer()
-                                ->minValue(160)
-                                ->required()
-                                ->live(),
-                            TextInput::make('precio_unitario')
-                                ->label('Precio unitario')
-                                ->numeric()
-                                ->prefix('Bs')
-                                ->minValue(0)
-                                ->disabled(true)
-                                ->dehydrated(true)
-                                ->required(),
-                            Hidden::make('precio_total')
-                                ->dehydrated()
-                                ->dehydrateStateUsing(fn (Get $get): float => round(
-                                    (float) ($get('cantidad_solicitada') ?? 0)
-                                        * (float) ($get('precio_unitario') ?? 0),
-                                    2,
-                                )),
-                            Placeholder::make('precio_total')
-                                ->label('Precio Total')
-                                ->content(function (Get $get): string {
-                                    $cantidad = (float) ($get('cantidad_solicitada') ?? 0);
-                                    $precio = (float) ($get('precio_unitario') ?? 0);
+                                        if ($saldo) {
+                                            $set('producto_id', $saldo->producto_id);
+                                            $set('precio_unitario', $saldo->precio_venta);
+                                        } else {
+                                            $set('producto_id', null);
+                                            $set('precio_unitario', null);
+                                        }
+                                    })
+                                    ->columnSpan(2),
+                                Hidden::make('producto_id')
+                                    ->required(),
+                                TextInput::make('cantidad_solicitada')
+                                    ->label('Cantidad')
+                                    ->integer()
+                                    ->minValue(160)
+                                    ->required()
+                                    ->live(),
+                                TextInput::make('precio_unitario')
+                                    ->label('Precio unitario')
+                                    ->numeric()
+                                    ->prefix('Bs')
+                                    ->minValue(0)
+                                    ->disabled(true)
+                                    ->dehydrated(true)
+                                    ->required(),
+                                Hidden::make('precio_total')
+                                    ->dehydrated()
+                                    ->dehydrateStateUsing(fn (Get $get): float => round(
+                                        (float) ($get('cantidad_solicitada') ?? 0)
+                                            * (float) ($get('precio_unitario') ?? 0),
+                                        2,
+                                    )),
+                                Placeholder::make('precio_total')
+                                    ->label('Precio Total')
+                                    ->content(function (Get $get): string {
+                                        $cantidad = (float) ($get('cantidad_solicitada') ?? 0);
+                                        $precio = (float) ($get('precio_unitario') ?? 0);
 
-                                    return 'Bs '.number_format($cantidad * $precio, 2);
-                                }),
+                                        return 'Bs '.number_format($cantidad * $precio, 2);
+                                    }),
                             ])
                             ->itemLabel(fn (array $state): ?string => filled($state['producto_id'] ?? null)
                                 ? app(Producto::class)->newQuery()->whereKey($state['producto_id'])->value('nombre')
@@ -251,25 +253,25 @@ class OrdenResource extends Resource
                             ->columnSpanFull()
                             ->schema([
                                 Placeholder::make('cantidad_total')
-                                ->label('Cantidad total')
-                                ->content(function (Get $get): string {
-                                    $productos = collect($get('productos') ?? []);
+                                    ->label('Cantidad total')
+                                    ->content(function (Get $get): string {
+                                        $productos = collect($get('productos') ?? []);
 
-                                    return (string) $productos->sum(
-                                        fn (array $item): int => (int) ($item['cantidad_solicitada'] ?? 0)
-                                    );
-                                }),
+                                        return (string) $productos->sum(
+                                            fn (array $item): int => (int) ($item['cantidad_solicitada'] ?? 0)
+                                        );
+                                    }),
 
                                 Placeholder::make('precio_total_general')
-                                ->label('IMPORTE TOTAL')
-                                ->content(function (Get $get): string {
-                                    $total = collect($get('productos') ?? [])
-                                        ->sum(fn (array $item): float => (float) ($item['cantidad_solicitada'] ?? 0)
-                                            * (float) ($item['precio_unitario'] ?? 0)
-                                        );
+                                    ->label('IMPORTE TOTAL')
+                                    ->content(function (Get $get): string {
+                                        $total = collect($get('productos') ?? [])
+                                            ->sum(fn (array $item): float => (float) ($item['cantidad_solicitada'] ?? 0)
+                                                * (float) ($item['precio_unitario'] ?? 0)
+                                            );
 
-                                    return 'Bs '.number_format($total, 2, '.', ',');
-                                }),
+                                        return 'Bs '.number_format($total, 2, '.', ',');
+                                    }),
                             ]),
                     ]),
 
@@ -288,31 +290,31 @@ class OrdenResource extends Resource
                                 //     ->preload()
                                 //     ->required(),
                                 TextInput::make('nombre')
-                                ->label('Nombres')
-                                ->maxLength(100)
-                                ->required(),
+                                    ->label('Nombres')
+                                    ->maxLength(100)
+                                    ->required(),
                                 TextInput::make('apellido')
-                                ->label('Apellido')
-                                ->maxLength(100)
-                                ->required(),
+                                    ->label('Apellido')
+                                    ->maxLength(100)
+                                    ->required(),
                                 TextInput::make('carnet')
-                                ->label('Carnet de identidad')
-                                ->maxLength(50)
-                                ->required(),
+                                    ->label('Carnet de identidad')
+                                    ->maxLength(50)
+                                    ->required(),
                                 TextInput::make('correo')
-                                ->label('Correo electrónico')
-                                ->maxLength(150)
-                                ->required(),
+                                    ->label('Correo electrónico')
+                                    ->maxLength(150)
+                                    ->required(),
                                 TextInput::make('telefono')
-                                ->label('Telefono')
-                                ->maxLength(50)
-                                ->integer()
-                                ->required(),
+                                    ->label('Telefono')
+                                    ->maxLength(50)
+                                    ->integer()
+                                    ->required(),
                                 TextInput::make('funcion')
-                                ->columnSpan(2)
-                                ->label('Función')
-                                ->maxLength(40)
-                                ->required(),
+                                    ->columnSpan(2)
+                                    ->label('Función')
+                                    ->maxLength(40)
+                                    ->required(),
                             ]),
                     ]),
                 // Section::make('Firma del cliente')
@@ -483,6 +485,30 @@ class OrdenResource extends Resource
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
+                    Action::make('imprimirOrden')
+                        ->label('Ver / imprimir pedido')
+                        ->icon(Heroicon::OutlinedPrinter)
+                        ->color('gray')
+                        ->visible(fn (Orden $record): bool => self::usuarioActual()->hasRole(['cliente', 'super_admin'])
+                            && (self::usuarioActual()->hasRole('super_admin')
+                                || (int) $record->solicitante_user_id === (int) self::usuarioActual()->getKey())
+                            && $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
+                        ->action(function ($record) {
+                            // Cargar la vista pasándole el modelo actual
+                            $pdf = Pdf::loadView('ordenes.reporte', ['orden' => $record])
+                                ->setPaper('letter')
+                                ->setOption('defaultFont', 'DejaVu Sans');
+
+                            // Descargar el archivo directamente desde la respuesta de Livewire/Filament
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, "registro-{$record->codigo_orden}.pdf");
+                        }),
+
+                    // ->url(fn (Orden $record): string => route('ordenes.reporte', ['orden' => $record, 'descargar' => false]))
+
+                    // ->url(fn (Orden $record) => route('ordenes.ver-html', $record))
+                    // ->openUrlInNewTab(),
                     Action::make('verMotivo')
                         ->label('Ver motivo')
                         ->icon(Heroicon::OutlinedEye)
