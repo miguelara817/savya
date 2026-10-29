@@ -93,6 +93,6 @@ class OrderProcessTimeChart extends ChartWidget
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'cliente']);
+        return $user instanceof User && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'cliente', 'cliente_ad']);
     }
 }

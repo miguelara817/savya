@@ -81,6 +81,6 @@ class AttentionOrdersTable extends TableWidget
         $user = auth()->user();
 
         return $user instanceof User
-            && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen', 'cliente']);
+            && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen', 'cliente', 'cliente_ad']);
     }
 }

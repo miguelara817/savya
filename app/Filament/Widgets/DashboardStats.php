@@ -98,7 +98,7 @@ class DashboardStats extends BaseWidget
         return $user instanceof User
             && $user->hasAnyRole([
                 'super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen',
-                'responsable_inventario', 'cliente',
+                'responsable_inventario', 'cliente', 'cliente_ad'
             ]);
     }
 }
