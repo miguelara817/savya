@@ -54,7 +54,8 @@ class PersonaResource extends Resource
                     ->relationship('tipo', 'valor')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->columnSpan(2),
                 TextInput::make('nombre')
                     ->label('Nombre')
                     ->required()
@@ -76,8 +77,10 @@ class PersonaResource extends Resource
                     ->maxLength(150),
                 TextInput::make('direccion')
                     ->label('Dirección')
-                    ->maxLength(250)
-                    ->columnSpanFull(),
+                    ->maxLength(250),
+                TextInput::make('registro_emapa')
+                    ->label('Registro EMAPA')
+                    ->maxLength(100),
                 Toggle::make('is_active')
                     ->label('Activo')
                     ->default(true),
@@ -88,6 +91,9 @@ class PersonaResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('N.º')
+                    ->rowIndex(),
                 TextColumn::make('persona_id')
                     ->label('ID')
                     ->sortable()
@@ -115,9 +121,13 @@ class PersonaResource extends Resource
                     ->label('Dirección')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('registro_emapa')
+                    ->label('Registro EMAPA')
+                    ->searchable(),
                 IconColumn::make('is_active')
                     ->label('Activo')
-                    ->boolean(),
+                    ->boolean()
+                    ->columnSpanFull(),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()

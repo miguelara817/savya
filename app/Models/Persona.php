@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'telefono',
     'correo',
     'direccion',
+    'registro_emapa',
     'is_active',
 ])]
 class Persona extends Model
