@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" type="image/png" href="/images/favicon.ico">
     <title>Pedido {{ $orden->numero }}</title>
     <style>
         /* @page { margin: 24mm 16mm; } */

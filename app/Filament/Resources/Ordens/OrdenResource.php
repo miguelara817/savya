@@ -195,6 +195,7 @@ class OrdenResource extends Resource
                                             ->all();
                                     })
                                     ->searchable()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function (?int $state, Set $set): void {
@@ -497,16 +498,17 @@ class OrdenResource extends Resource
                             $pdf = Pdf::loadView('ordenes.reporte', ['orden' => $record])
                                 ->setPaper('letter')
                                 ->setOption('defaultFont', 'DejaVu Sans');
+
                             // Descargar el archivo directamente desde la respuesta de Livewire/Filament
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
                             }, "registro-{$record->codigo_orden}.pdf");
                         }),
 
-                        // ->url(fn (Orden $record): string => route('ordenes.reporte', ['orden' => $record, 'descargar' => false]))
+                    // ->url(fn (Orden $record): string => route('ordenes.reporte', ['orden' => $record, 'descargar' => false]))
 
-                        // ->url(fn (Orden $record) => route('ordenes.ver-html', $record))
-                        // ->openUrlInNewTab(),
+                    // ->url(fn (Orden $record) => route('ordenes.ver-html', $record))
+                    // ->openUrlInNewTab(),
                     Action::make('verMotivo')
                         ->label('Ver motivo')
                         ->icon(Heroicon::OutlinedEye)
