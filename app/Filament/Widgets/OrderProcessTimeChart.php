@@ -17,7 +17,7 @@ class OrderProcessTimeChart extends ChartWidget
 
     protected ?string $heading = 'Duración promedio del proceso';
 
-    protected ?string $description = 'Días promedio entre los hitos de aprobación, pago y entrega de las órdenes.';
+    protected ?string $description = 'Días promedio entre los hitos de aprobación, pago y entrega de los pedidos.';
 
     protected function getData(): array
     {

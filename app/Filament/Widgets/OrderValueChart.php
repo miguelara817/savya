@@ -17,7 +17,7 @@ class OrderValueChart extends ChartWidget
 
     protected ?string $heading = 'Ventas confirmadas por mes';
 
-    protected ?string $description = 'Importe de las órdenes completadas durante el período seleccionado.';
+    protected ?string $description = 'Importe de los pedidos completados durante el período seleccionado.';
 
     protected function getData(): array
     {
