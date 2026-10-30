@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\EmailAuthentication;
+use App\Filament\Auth\SessionTrackingLogin;
 use App\Filament\Pages\Dashboard;
 use App\Notifications\VerifyLoginEmail;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -34,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login()
+            ->login(SessionTrackingLogin::class)
             ->profile()
             ->favicon(asset('images/favicon.ico'))
             ->multiFactorAuthentication([
@@ -62,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
             // ])
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render('<style>.dark .fi-topbar,.dark .fi-sidebar-header,.dark .fi-topbar-nav-groups{background-color:#082d44!important}.dark .fi-topbar,.dark .fi-sidebar-header{border-color:transparent!important}.dark .fi-simple-main,.dark .fi-main-content
             {background-color:#082d44!important}.dark .fi-simple-main-ctn{background-image:none!important}</style>'))
-             ->renderHook(
+            ->renderHook(
                 PanelsRenderHook::FOOTER,
                 fn (): string => Blade::render(
                     '@include("filament.components.footer")'

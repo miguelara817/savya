@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -33,7 +34,7 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
                 'cliente',
                 'encargado_ventas',
                 'encargado_almacen',
-                'cliente_ad'
+                'cliente_ad',
             ]);
     }
 
@@ -45,6 +46,14 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
         return $this->belongsTo(Persona::class, 'persona_id');
     }
 
+    /**
+     * @return HasMany<UserSession, $this>
+     */
+    public function userSessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
+    }
+
     public function hasEmailAuthentication(): bool
     {
         if ($this->hasAnyRole([
@@ -53,7 +62,7 @@ class User extends Authenticatable implements FilamentUser, HasEmailAuthenticati
             'responsable_inventario',
             'encargado_ventas',
             'encargado_almacen',
-            'cliente_ad'
+            'cliente_ad',
         ])) {
             return false;
         }
