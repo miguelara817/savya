@@ -85,7 +85,7 @@ class OrdenResource extends Resource
                         ->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value)
                         ->value('orden_estado_id'))
                     ->dehydrated(),
-                Section::make('')
+                Section::make('Datos de facturación')
                     ->columns(2)
                     ->schema([
                         TextInput::make('numero')
@@ -275,10 +275,10 @@ class OrdenResource extends Resource
                             ]),
                     ]),
 
-                Section::make('Personas adicionales')
+                Section::make('Personas adicionales (opcional)')
                     ->schema([
                         Repeater::make('personasAdicionales')
-                            ->label('Personas autorizadas')
+                            ->label('Añada personas adicionales con relación al pedido')
                             ->relationship()
                             ->columns(2)
                             ->defaultItems(0)
