@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\OrdenEstadoCodigo;
 use App\Models\Orden;
 use App\Models\User;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class OrdenReporteController extends Controller
@@ -23,10 +26,21 @@ class OrdenReporteController extends Controller
             Response::HTTP_NOT_FOUND,
         );
 
+        if (empty($orden->verificacion_token)) {
+            $orden->forceFill(['verificacion_token' => Str::random(64)])->save();
+        }
+
         $orden->loadMissing(['almacen', 'persona', 'productos.producto']);
 
         $pdf = app('dompdf.wrapper')
-            ->loadView('ordenes.reporte', ['orden' => $orden])
+            ->loadView('ordenes.reporte', [
+                'orden' => $orden,
+                'urlVerificacion' => route('ordenes.verificar', ['token' => $orden->verificacion_token]),
+                'qrVerificacion' => (new QRCode(new QROptions([
+                    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                    'scale' => 5,
+                ])))->render(route('ordenes.verificar', ['token' => $orden->verificacion_token])),
+            ])
             ->setPaper('letter');
 
         return $request->boolean('descargar')

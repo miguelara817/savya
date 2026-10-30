@@ -72,11 +72,23 @@ it('lets the owning client print the pending order report with line totals', fun
         ->assertOk()
         ->assertHeader('content-type', 'application/pdf');
 
+    $orden->refresh();
+    $this->get(route('ordenes.verificar', ['token' => $orden->verificacion_token]))
+        ->assertOk()
+        ->assertSee('Pedido original verificado')
+        ->assertSee('Harina')
+        ->assertSee('Almacén');
+
     $this->actingAs($cliente)
         ->get(route('ordenes.reporte', ['orden' => $orden, 'descargar' => true]))
         ->assertOk()
         ->assertHeader('content-type', 'application/pdf')
         ->assertHeader('content-disposition', 'attachment; filename=orden-ORD-REPORTE-001.pdf');
+});
+
+it('rejects an invalid public order verification token', function (): void {
+    $this->get(route('ordenes.verificar', ['token' => str_repeat('x', 64)]))
+        ->assertNotFound();
 });
 
 it('does not allow another client to view the order report', function (): void {

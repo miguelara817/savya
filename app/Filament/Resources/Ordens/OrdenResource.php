@@ -21,6 +21,8 @@ use App\Services\SalidaAlmacenService;
 use App\Support\DocumentoNumero;
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -495,7 +497,19 @@ class OrdenResource extends Resource
                             && $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
                         ->action(function ($record) {
                             // Cargar la vista pasándole el modelo actual
-                            $pdf = Pdf::loadView('ordenes.reporte', ['orden' => $record])
+                            if (empty($record->verificacion_token)) {
+                                $record->forceFill(['verificacion_token' => Str::random(64)])->save();
+                            }
+
+                            $record->loadMissing(['almacen', 'persona', 'productos.producto']);
+                            $pdf = Pdf::loadView('ordenes.reporte', [
+                                'orden' => $record,
+                                'urlVerificacion' => route('ordenes.verificar', ['token' => $record->verificacion_token]),
+                                'qrVerificacion' => (new QRCode(new QROptions([
+                                    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                                    'scale' => 5,
+                                ])))->render(route('ordenes.verificar', ['token' => $record->verificacion_token])),
+                            ])
                                 ->setPaper('letter')
                                 ->setOption('defaultFont', 'DejaVu Sans');
 

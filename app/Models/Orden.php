@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'codigo_orden',
+    'verificacion_token',
     'numero',
     'persona_id',
     'razon_social',
@@ -36,6 +38,10 @@ class Orden extends Model
     protected static function booted(): void
     {
         static::creating(function (Orden $orden): void {
+            if (empty($orden->verificacion_token)) {
+                $orden->verificacion_token = Str::random(64);
+            }
+
             if (empty($orden->orden_estado_id)) {
                 $estadoId = OrdenEstado::query()
                     ->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value)

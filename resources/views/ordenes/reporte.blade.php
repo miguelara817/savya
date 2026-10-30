@@ -15,7 +15,7 @@
         .number { text-align: right; white-space: nowrap; }
         .declaration { line-height: 1.6}
         .signatures { margin-top: 20px; width: 100%; border: 1px }
-        .signature-field {height: 60px;}
+        .signature-field {height: 55px;}
         /* .signature { border-top: 1px solid #111827; padding: 8px; text-align: center; width: 45%; } */
         .signature {text-align: center; }
         .img-container {
@@ -27,6 +27,7 @@
             text-align: center;
             margin: 0 auto;
         }
+        .verification { text-align: center; margin-top: 16px; font-size: 9px; }
     </style>
 </head>
 <body>
@@ -57,7 +58,7 @@
     <h2>2. Datos del solicitante</h2>
     <table>
         <tbody>
-            <tr><th>Nombre</th><td>{{ $orden->solicitante->persona->nombre}} {{ $orden->solicitante->persona?->apellido }}</td><th>Carnet</th><td>{{ $orden->solicitante->persona->carnet }}</td></tr>
+            <tr><th>Nombre o razón social</th><td>{{ $orden->solicitante->persona->nombre}} {{ $orden->solicitante->persona?->apellido }}</td><th>NIT / CI</th><td>{{ $orden->solicitante->persona->carnet }}</td></tr>
             <tr><th>Teléfono</th><td>{{ $orden->solicitante->persona?->telefono }}</td><th>Correo</th><td>{{ $orden->solicitante->persona?->correo }}</td></tr>
             <tr><th>Dirección</th><td colspan="3">{{ $orden->solicitante->persona?->direccion }}</td></tr>
             {{-- <tr><th>Razón social</th><td>{{ $orden->razon_social }}</td><th>NIT</th><td>{{ $orden->nit }}</td></tr>
@@ -106,11 +107,16 @@
         <tr><td class="signature-field"></td></tr>
         <tr>
             <td class="signature" >
-                <br>Firma del solicitante<br><strong>Nombre:</strong> {{ $orden->solicitante->persona->nombre }} {{ $orden->solicitante->persona?->apellido }}<br><strong>C.I.:</strong> {{ $orden->solicitante->persona->carnet }}
+                Firma del solicitante<br><strong>Nombre:</strong> {{ $orden->solicitante->persona->nombre }} {{ $orden->solicitante->persona?->apellido }}<br><strong>C.I.:</strong> {{ $orden->solicitante->persona->carnet }}
             </td>
             {{-- <td style="border: 0; width: 10%;"></td>
             <td class="signature" style="border: 0;"><br>Firma de recepción / revisión<br>Nombre: ____________________<br>C.I.: ____________________</td> --}}
         </tr>
     </table>
+    <div class="verification">
+        <img src="{{ $qrVerificacion }}" width="100" height="100" alt="QR de verificación">
+        <div>Escanee para validar la autenticidad del pedido</div>
+        {{-- <div>{{ $urlVerificacion }}</div> --}}
+    </div>
 </body>
 </html>
