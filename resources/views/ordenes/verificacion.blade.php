@@ -11,9 +11,19 @@
         th, td { border: 1px solid #d1d5db; padding: .6rem; text-align: left; }
         th { background: #f3f4f6; }
         .valid { background: #082d44; color: white; border: 1px solid; padding: 1rem; }
+        .logo-container {
+            text-align: center
+        }
+        .logo {
+            width: 350px;
+        }
     </style>
 </head>
 <body>
+    <div class="logo-container">
+        <img class="logo" src="{{ asset('images/01_SAVYA_horizontal_color_transparente.png') }}" alt="">
+    </div>
+
     <h1>Pedido original verificado</h1>
     <p class="valid">Este documento corresponde a un pedido registrado en INSUMOS BOLIVIA - SAVYA.</p>
     <h2>Datos del pedido</h2>
@@ -38,6 +48,10 @@
 
                 <th>Precio total</th>
                 <td>Bs {{ number_format((float) $orden->precio_total, 2, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <th>Estado del pedido</th>
+                <td colspan="3"><strong>{{ $orden->estado->nombre }}</strong></td>
             </tr>
         </tbody>
     </table>

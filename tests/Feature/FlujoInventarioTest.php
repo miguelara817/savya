@@ -576,6 +576,7 @@ test('la orden se completa solo cuando todas las cantidades fueron entregadas', 
     $orden = $escenario['orden']->fresh();
 
     expect($orden->estadoCodigo())->toBe(OrdenEstadoCodigo::Completada->value)
+        ->and($orden->fecha_entrega)->not->toBeNull()
         ->and($orden->historialEstados()->whereHas('estado', fn ($query) => $query->where('codigo', OrdenEstadoCodigo::Completada->value))->exists())->toBeTrue();
 });
 

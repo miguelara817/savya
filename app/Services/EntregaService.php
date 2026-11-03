@@ -223,6 +223,8 @@ class EntregaService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $orden->forceFill(['fecha_entrega' => $fechaConfirmacion])->save();
+
             $this->ordenService->actualizarEstadoPorCantidades($orden, $usuario);
         }, 3);
     }

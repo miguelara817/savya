@@ -87,6 +87,37 @@ class OrdenResource extends Resource
                         ->where('codigo', OrdenEstadoCodigo::PendienteAprobacion->value)
                         ->value('orden_estado_id'))
                     ->dehydrated(),
+                Section::make('Datos del solicitante')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('solicitante_persona_nombre')
+                            ->label('Nombre y apellido')
+                            ->formatStateUsing(fn ($record): ?string => $record?->solicitante?->persona
+                                ? trim($record->solicitante->persona->nombre.' '.$record->solicitante->persona->apellido)
+                                : trim((string) Filament::auth()->user()?->persona?->nombre.' '.(string) Filament::auth()->user()?->persona?->apellido))
+                            ->disabled()
+                            ->dehydrated(false),
+                        TextInput::make('solicitante_persona_carnet')
+                            ->label('Carnet')
+                            ->formatStateUsing(fn ($record): ?string => $record?->solicitante?->persona?->carnet ?? Filament::auth()->user()?->persona?->carnet)
+                            ->disabled()
+                            ->dehydrated(false),
+                        TextInput::make('solicitante_persona_telefono')
+                            ->label('Teléfono')
+                            ->formatStateUsing(fn ($record): ?string => $record?->solicitante?->persona?->telefono ?? Filament::auth()->user()?->persona?->telefono)
+                            ->disabled()
+                            ->dehydrated(false),
+                        TextInput::make('solicitante_persona_correo')
+                            ->label('Correo')
+                            ->formatStateUsing(fn ($record): ?string => $record?->solicitante?->persona?->correo ?? Filament::auth()->user()?->persona?->correo)
+                            ->disabled()
+                            ->dehydrated(false),
+                        TextInput::make('solicitante_persona_direccion')
+                            ->label('Dirección')
+                            ->formatStateUsing(fn ($record): ?string => $record?->solicitante?->persona?->direccion ?? Filament::auth()->user()?->persona?->direccion)
+                            ->disabled()
+                            ->dehydrated(false),
+                    ]),
                 Section::make('Datos de facturación')
                     ->columns(2)
                     ->schema([
@@ -491,10 +522,20 @@ class OrdenResource extends Resource
                         ->label('Ver / imprimir pedido')
                         ->icon(Heroicon::OutlinedPrinter)
                         ->color('gray')
-                        ->visible(fn (Orden $record): bool => self::usuarioActual()->hasRole(['cliente', 'super_admin','cliente_ad'])
-                            && (self::usuarioActual()->hasRole('super_admin')
-                                || (int) $record->solicitante_user_id === (int) self::usuarioActual()->getKey())
-                            && $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
+                        ->visible(
+                            fn (Orden $record): bool => self::usuarioActual()->hasRole(['cliente', 'super_admin', 'cliente_ad', 'encargado_almacen'])
+                            &&
+                            (
+                                self::usuarioActual()->hasRole(['super_admin', 'encargado_almacen'])
+                                || (int) $record->solicitante_user_id === (int) self::usuarioActual()->getKey()
+                            )
+                            &&
+                            (
+                                $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion) ||
+                                $record->estaEnEstado(OrdenEstadoCodigo::Verificado) ||
+                                $record->estaEnEstado(OrdenEstadoCodigo::Completada)
+                            )
+                        )
                         ->action(function ($record) {
                             // Cargar la vista pasándole el modelo actual
                             if (empty($record->verificacion_token)) {
@@ -548,8 +589,8 @@ class OrdenResource extends Resource
                         ->icon(Heroicon::OutlinedPaperAirplane)
                         ->color('info')
                         ->requiresConfirmation()
-                        ->modalHeading('Enviar orden a aprobación')
-                        ->modalDescription('La orden quedará bloqueada para edición hasta que sea aprobada, rechazada o cancelada.')
+                        ->modalHeading('Enviar pedido a aprobación')
+                        ->modalDescription('El pedido quedará bloqueado para edición hasta que sea aprobada, rechazada o cancelada.')
                         ->authorize('enviarAprobacion')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Borrador))
                         ->action(function (Orden $record): void {
@@ -562,7 +603,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden enviada a aprobación')
+                                ->title('Pedido enviado a aprobación')
                                 ->success()
                                 ->send();
                         }),
@@ -571,7 +612,7 @@ class OrdenResource extends Resource
                         ->icon(Heroicon::OutlinedCheckCircle)
                         ->color('success')
                         ->requiresConfirmation()
-                        ->modalHeading('Aprobar orden')
+                        ->modalHeading('Aprobar pedido')
                         ->modalDescription('Se reservará el stock de todas las líneas de forma atómica. Esta acción no se puede deshacer automáticamente.')
                         ->authorize('aprobar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
@@ -585,7 +626,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden aprobada y stock reservado')
+                                ->title('Pedido aprobado y stock reservado')
                                 ->success()
                                 ->send();
                         }),
@@ -593,7 +634,7 @@ class OrdenResource extends Resource
                         ->label('Pagar')
                         ->icon(Heroicon::OutlinedCreditCard)
                         ->color('success')
-                        ->modalHeading('Registrar pago de la orden')
+                        ->modalHeading('Registrar pago del pedido')
                         ->modalSubmitActionLabel('Registrar pago')
                         ->authorize('pagar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Aprobada))
@@ -769,7 +810,7 @@ class OrdenResource extends Resource
                         ->modalSubmitAction(false)
                         ->action(fn (): null => null),
                     Action::make('rechazar')
-                        ->label('Rechazar orden')
+                        ->label('Rechazar pedido')
                         ->icon(Heroicon::OutlinedXCircle)
                         ->color('danger')
                         ->schema([
@@ -779,7 +820,7 @@ class OrdenResource extends Resource
                                 ->rows(3)
                                 ->maxLength(1000),
                         ])
-                        ->modalHeading('Rechazar orden')
+                        ->modalHeading('Rechazar pedido')
                         ->modalSubmitActionLabel('Rechazar')
                         ->authorize('rechazar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
@@ -793,12 +834,12 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden rechazada')
+                                ->title('Pedido rechazado')
                                 ->success()
                                 ->send();
                         }),
                     Action::make('cancelar')
-                        ->label('Anular orden')
+                        ->label('Anular pedido')
                         ->icon(Heroicon::OutlinedXCircle)
                         ->color('danger')
                         ->schema([
@@ -808,9 +849,9 @@ class OrdenResource extends Resource
                                 ->rows(3)
                                 ->maxLength(1000),
                         ])
-                        ->modalHeading('Anular orden aprobada')
+                        ->modalHeading('Anular pedido aprobado')
                         ->modalDescription('Se liberarán las reservas pendientes.')
-                        ->modalSubmitActionLabel('Anular orden')
+                        ->modalSubmitActionLabel('Anular pedido')
                         ->authorize('cancelar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Aprobada))
                         ->action(function (Orden $record, array $data): void {
@@ -823,7 +864,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden anulada')
+                                ->title('Pedido anulado')
                                 ->success()
                                 ->send();
                         }),
@@ -832,7 +873,7 @@ class OrdenResource extends Resource
                         ->icon(Heroicon::OutlinedCheckCircle)
                         ->color('success')
                         ->requiresConfirmation()
-                        ->modalHeading('Confirmar orden entregada')
+                        ->modalHeading('Confirmar pedido entregado')
                         ->modalDescription('Se confirmará el despacho y la entrega completa, se descontará el stock físico y se marcarán como liberadas las reservas con la fecha de entrega.')
                         ->authorize('entregar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Verificado))
@@ -846,7 +887,7 @@ class OrdenResource extends Resource
                             }
 
                             Notification::make()
-                                ->title('Orden marcada como entregada')
+                                ->title('Pedido marcado como entregada')
                                 ->success()
                                 ->send();
                         }),

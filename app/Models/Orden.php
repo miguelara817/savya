@@ -32,6 +32,7 @@ use Illuminate\Support\Str;
     'pagado_en',
     'motivo_rechazo',
     'fecha_entrega_tentativa',
+    'fecha_entrega',
 ])]
 class Orden extends Model
 {
@@ -119,6 +120,7 @@ class Orden extends Model
     {
         return [
             'fecha_registro' => 'datetime',
+            'fecha_entrega' => 'datetime',
             'fecha_efectivizacion' => 'datetime',
             'firmado_en' => 'datetime',
             'pagado_en' => 'datetime',
