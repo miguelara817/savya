@@ -105,7 +105,7 @@
         </table>
     </section>
 
-    @if ($orden->estado->codigo == 'COMPLETADA')
+    @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
         <section>
             <h2>Detalle de pago</h2>
             <table>
@@ -127,7 +127,7 @@
                     <td>{{ date('d/m/Y', strtotime($orden->fecha_entrega_tentativa)) }}</td>
                     @if ($orden->estado->codigo == 'COMPLETADA')    
                         <th>Fecha de entrega</th>
-                        <td>{{ $orden->fecha_efectivizacion->format('d/m/Y') }}</td>
+                        <td>{{ $orden->fecha_entrega->format('d/m/Y') }}</td>
                     @endif
                 </tr>
             </table>

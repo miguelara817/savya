@@ -36,7 +36,7 @@ class OrderStatusChart extends ChartWidget
 
         return [
             'datasets' => [[
-                'label' => 'Órdenes',
+                'label' => 'Pedidos',
                 'data' => $estados->map(fn (OrdenEstado $estado): int => (int) $conteos->get($estado->orden_estado_id, 0))->all(),
                 'backgroundColor' => ['#0f766e', '#f59e0b', '#16a34a', '#2563eb', '#7c3aed', '#ea580c', '#15803d', '#dc2626', '#64748b'],
             ]],
