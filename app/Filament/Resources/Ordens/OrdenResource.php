@@ -250,7 +250,7 @@ class OrdenResource extends Resource
                                 TextInput::make('cantidad_solicitada')
                                     ->label('Cantidad')
                                     ->integer()
-                                    ->minValue(160)
+                                    ->minValue(80)
                                     ->required()
                                     ->live(),
                                 TextInput::make('precio_unitario')
