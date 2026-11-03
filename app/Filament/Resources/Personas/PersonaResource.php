@@ -16,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -52,19 +53,23 @@ class PersonaResource extends Resource
                 Select::make('persona_tipo_id')
                     ->label('Tipo de persona')
                     ->relationship('tipo', 'valor')
-                    ->searchable()
-                    ->preload()
+                    // ->searchable()
+                    // ->preload()
                     ->required()
+                    ->live()
                     ->columnSpan(2),
                 TextInput::make('nombre')
-                    ->label('Nombre')
+                    // ->label('Nombre')
+                    ->label(fn (Get $get) => $get('persona_tipo_id') == 2 ? 'Razón social' : 'Nombre')
                     ->required()
                     ->maxLength(100),
                 TextInput::make('apellido')
                     ->label('Apellido')
-                    ->maxLength(100),
+                    ->maxLength(100)
+                    ->hidden(fn (Get $get) => $get('persona_tipo_id') == 2),
                 TextInput::make('carnet')
-                    ->label('Carnet')
+                    // ->label('Carnet')
+                    ->label(fn (Get $get) => $get('persona_tipo_id') == 2 ? 'NIT' : 'Carnet')
                     ->maxLength(30)
                     ->unique(ignoreRecord: true),
                 TextInput::make('telefono')
@@ -101,7 +106,7 @@ class PersonaResource extends Resource
                 TextColumn::make('tipo.valor')
                     ->label('Tipo'),
                 TextColumn::make('nombre')
-                    ->label('Nombre')
+                    ->label('Nombre / Razón social')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('apellido')
@@ -109,7 +114,7 @@ class PersonaResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('carnet')
-                    ->label('Carnet')
+                    ->label('Carnet / NIT')
                     ->searchable(),
                 TextColumn::make('telefono')
                     ->label('Teléfono')
