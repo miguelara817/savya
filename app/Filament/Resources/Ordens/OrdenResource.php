@@ -491,10 +491,20 @@ class OrdenResource extends Resource
                         ->label('Ver / imprimir pedido')
                         ->icon(Heroicon::OutlinedPrinter)
                         ->color('gray')
-                        ->visible(fn (Orden $record): bool => self::usuarioActual()->hasRole(['cliente', 'super_admin','cliente_ad'])
-                            && (self::usuarioActual()->hasRole('super_admin')
-                                || (int) $record->solicitante_user_id === (int) self::usuarioActual()->getKey())
-                            && $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion))
+                        ->visible(
+                                fn (Orden $record): bool => self::usuarioActual()->hasRole(['cliente', 'super_admin','cliente_ad','encargado_almacen'])
+                                && 
+                                (
+                                    self::usuarioActual()->hasRole(['super_admin','encargado_almacen'])
+                                    || (int) $record->solicitante_user_id === (int) self::usuarioActual()->getKey()
+                                )
+                                &&
+                                (
+                                    $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion) ||
+                                    $record->estaEnEstado(OrdenEstadoCodigo::Verificado) ||
+                                    $record->estaEnEstado(OrdenEstadoCodigo::Completada)
+                                )
+                            )
                         ->action(function ($record) {
                             // Cargar la vista pasándole el modelo actual
                             if (empty($record->verificacion_token)) {
