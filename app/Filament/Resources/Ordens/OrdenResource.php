@@ -639,11 +639,20 @@ class OrdenResource extends Resource
                         ->authorize('pagar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Aprobada))
                         ->schema([
-                            Placeholder::make('qr_pago')
-                                ->label('Código QR de pago')
-                                ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
-                                    ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
-                                    : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            // Placeholder::make('qr_pago')
+                            //     ->label('Código QR de pago')
+                            //     ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
+                            //         ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
+                            //         : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            Placeholder::make('trasnsferencia')
+                                ->label('Realice el depósito o transferencia bancaria a la siguiente cuenta:')
+                                ->content(new HtmlString('
+                                    <div>
+                                        <strong>BANCO UNIÓN S.A.</strong><br>
+                                        <strong>Titular:</strong> INSUMOS BOLIVIA - FONDO PARA LA SEGURIDAD ALIMENTARIA<br>
+                                        <strong>N.º de cuenta:</strong> 10000008054938
+                                    </div>
+                                    ')),
                             Placeholder::make('precio_total')
                                 ->label('Importe total')
                                 ->content(fn (Orden $record): string => 'Bs '.number_format((float) $record->precio_total, 2, '.', ',')),
@@ -713,11 +722,20 @@ class OrdenResource extends Resource
                             'comprobante_pago' => $record->comprobante_pago,
                         ])
                         ->schema([
-                            Placeholder::make('qr_pago')
-                                ->label('Código QR de pago')
-                                ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
-                                    ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
-                                    : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            // Placeholder::make('qr_pago')
+                            //     ->label('Código QR de pago')
+                            //     ->content(fn (): HtmlString|string => file_exists(public_path('images/qr-pago.png'))
+                            //         ? new HtmlString('<img src="'.asset('images/qr-pago.png').'" alt="QR de pago" style="max-width: 240px;">')
+                            //         : 'QR de pago no configurado. Añade el archivo public/images/qr-pago.png.'),
+                            Placeholder::make('trasnsferencia')
+                                ->label('Realice el depósito o transferencia bancaria a la siguiente cuenta:')
+                                ->content(new HtmlString('
+                                    <div>
+                                        <strong>BANCO UNIÓN S.A.</strong><br>
+                                        <strong>Titular:</strong> INSUMOS BOLIVIA - FONDO PARA LA SEGURIDAD ALIMENTARIA<br>
+                                        <strong>N.º de cuenta:</strong> 10000008054938
+                                    </div>
+                                    ')),
                             Placeholder::make('precio_total')
                                 ->label('Importe total')
                                 ->content(fn (Orden $record): string => 'Bs '.number_format((float) $record->precio_total, 2, '.', ',')),
@@ -742,7 +760,7 @@ class OrdenResource extends Resource
                         ])
                         ->extraModalFooterActions(fn (Action $action): array => [
                             Action::make('confirmarVerificacion')
-                                ->label('Verificar pago')
+                                ->label('Validar pago')
                                 ->color('success')
                                 ->icon(Heroicon::OutlinedCheckCircle)
                                 ->requiresConfirmation()

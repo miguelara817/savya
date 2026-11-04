@@ -28,16 +28,20 @@ class OrdenPagoCorreoService
             ? '<p>Escanee el siguiente código QR para realizar el pago:</p><p><img src="'.e(asset('images/qr-pago.png')).'" alt="QR de pago" style="max-width: 240px;"></p>'
             : '<p>Consulte el código QR de pago en el sistema.</p>';
 
-        $cuerpo = sprintf(
-            '<h1>Orden aprobada: %s</h1><p>Su orden ha sido aprobada. Puede proceder con el pago para continuar con el pedido.</p><p><strong>Total: Bs %s</strong></p>%s<ul>%s</ul><p>Razón social: %s<br>NIT: %s</p>
-            <strong>***Recuerda que una vez realizado el pago, debe completar el registro en la plataforma.</strong>',
-            e($orden->numero ?? $orden->codigo_orden ?? (string) $orden->getKey()),
-            number_format((float) $orden->precio_total, 2, '.', ','),
-            $codigoQr,
-            $lineas,
-            e($orden->razon_social ?? ''),
-            e($orden->nit ?? ''),
-        );
+        // $cuerpo = sprintf(
+        //     '<h1>Orden aprobada: %s</h1><p>Su orden ha sido aprobada. Puede proceder con el pago para continuar con el pedido.</p><p><strong>Total: Bs %s</strong></p>%s<ul>%s</ul><p>Razón social: %s<br>NIT: %s</p>
+        //     <strong>***Recuerda que una vez realizado el pago, debe completar el registro en la plataforma.</strong>',
+        //     e($orden->numero ?? $orden->codigo_orden ?? (string) $orden->getKey()),
+        //     number_format((float) $orden->precio_total, 2, '.', ','),
+        //     $codigoQr,
+        //     $lineas,
+        //     e($orden->razon_social ?? ''),
+        //     e($orden->nit ?? ''),
+        // );
+
+        $cuerpo = view('emails.orden-pago', [
+            'orden' => $orden,
+        ])->render();
 
         $this->correoService->enviar(
             destinatarios: [$orden->correo_facturacion],

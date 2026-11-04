@@ -31,7 +31,7 @@ class VerifyLoginEmail extends VerifyEmailAuthentication
                 if (is_string($numero) && trim($numero) !== '') {
                     app(OpenWaService::class)->enviarMensaje(
                         $numero,
-                        "Tu código de verificación de SAVYA es: {$this->code}. Vence en {$this->codeExpiryMinutes} minutos.",
+                        "Tu código de verificación de SAVYA es: *{$this->code}*. Vence en {$this->codeExpiryMinutes} minutos.",
                     );
                 }
             } catch (Throwable $exception) {
