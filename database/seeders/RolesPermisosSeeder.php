@@ -38,6 +38,7 @@ class RolesPermisosSeeder extends Seeder
             'ViewAny:Producto', 'View:Producto', 'Create:Producto', 'Update:Producto', 'Delete:Producto',
             'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             'ViewAny:Persona', 'View:Persona', 'Create:Persona', 'Update:Persona',
+            'ViewAny:ServiceDataInfo', 'View:ServiceDataInfo', 'Create:ServiceDataInfo', 'Update:ServiceDataInfo', 'Delete:ServiceDataInfo', 'Restore:ServiceDataInfo', 'ForceDelete:ServiceDataInfo',
         ])->unique();
 
         foreach ($permisos as $permiso) {
@@ -62,6 +63,9 @@ class RolesPermisosSeeder extends Seeder
                 'ViewAny:Almacen', 'View:Almacen', 'Create:Almacen', 'Update:Almacen',
             ],
             'cliente' => [
+                'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden', 'Pagar:Orden', 'VerMotivoRechazo:Orden',
+            ],
+            'cliente_ad' => [
                 'ViewAny:Orden', 'View:Orden', 'Create:Orden', 'Update:Orden', 'Delete:Orden', 'Pagar:Orden', 'VerMotivoRechazo:Orden',
             ],
             // 'operador_ordenes' => [

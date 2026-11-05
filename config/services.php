@@ -28,6 +28,30 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // 'openwa' => [
+    //     'base_url' => env('OPENWA_BASEURL'),
+    //     'api_key' => env('OPENWA_APIKEY'),
+    //     'session_id' => env('OPENWA_SESSIONID'),
+    //     'endpoint' => env('OPENWA_ENDPOINT'),
+    //     'phone_field' => env('OPENWA_PHONE_FIELD', 'phone'),
+    //     'message_field' => env('OPENWA_MESSAGE_FIELD', 'message'),
+    //     'session_field' => env('OPENWA_SESSION_FIELD', 'session'),
+    //     'api_key_header' => env('OPENWA_APIKEY_HEADER', 'Authorization'),
+    //     'api_key_prefix' => env('OPENWA_APIKEY_PREFIX', 'Bearer '),
+    // ],
+
+    'openwa' => [
+        'base_url' => env('OPENWA_BASEURL'),
+        'api_key' => env('OPENWA_APIKEY'),
+        'session_id' => env('OPENWA_SESSIONID'),
+        'endpoint' => env('OPENWA_ENDPOINT'),
+        'phone_field' => env('OPENWA_PHONE_FIELD', 'phone'),
+        'message_field' => env('OPENWA_MESSAGE_FIELD', 'message'),
+        'session_field' => env('OPENWA_SESSION_FIELD', 'session'),
+        'api_key_header' => env('OPENWA_APIKEY_HEADER', 'Authorization'),
+        'api_key_prefix' => env('OPENWA_APIKEY_PREFIX', 'Bearer '),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

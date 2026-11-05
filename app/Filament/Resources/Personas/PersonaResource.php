@@ -75,7 +75,8 @@ class PersonaResource extends Resource
                 TextInput::make('telefono')
                     ->label('Teléfono')
                     ->tel()
-                    ->maxLength(30),
+                    ->required()
+                    ->maxLength(8),
                 TextInput::make('correo')
                     ->label('Correo')
                     ->email()
