@@ -62,13 +62,15 @@ class OrdenPolicy
     {
         return $authUser->can('VerificarPago:Orden')
             && $orden->estaEnEstado(OrdenEstadoCodigo::Pagado)
-            && filled($orden->comprobante_pago);
+            && filled($orden->comprobante_pago)
+            || $authUser->hasRole('encargado_ventas');
     }
 
     public function entregar(AuthUser $authUser, Orden $orden): bool
     {
         return $authUser->can('Entregar:Orden')
-            && $orden->estaEnEstado(OrdenEstadoCodigo::Verificado);
+            && $orden->estaEnEstado(OrdenEstadoCodigo::Verificado)
+            || $authUser->hasRole('encargado_almacen');
     }
 
     public function rechazar(AuthUser $authUser, Orden $orden): bool
