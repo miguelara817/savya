@@ -27,7 +27,7 @@ class OpenWaService
                 'session_id',
                 'api_key_header'
             ]))->toArray()[0];
-
+        
         // dump($openwaData);
 
         // $baseUrl = rtrim((string) config('services.openwa.base_url'), '/');
