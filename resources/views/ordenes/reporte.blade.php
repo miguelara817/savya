@@ -15,7 +15,7 @@
         .number { text-align: right; white-space: nowrap; }
         .declaration { line-height: 1.6}
         .signatures { margin-top: 20px; width: 100%; border: 1px }
-        .signature-field {height: 55px;}
+        .signature-field {height: 30px;}
         /* .signature { border-top: 1px solid #111827; padding: 8px; text-align: center; width: 45%; } */
         .signature {text-align: center; }
         .img-container {
@@ -40,7 +40,11 @@
                     <td class="img-container"><img class="logo" src="{{ public_path('images/min-hor.jpeg') }}" alt="logo-ministerio"></td>
                     <td>
                         <h1>INSUMOS BOLIVIA</h1>
-                        <h1>FORMULARIO DE PEDIDO</h1>
+                        @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
+                            <h1>ACTA DE ENTREGA Y RECEPCIÓN</h1>
+                        @else
+                            <h1>FORMULARIO DE PEDIDO</h1>
+                        @endif
                     </td>
                     <td class="img-container"><img class="logo" src="{{ public_path('images/insumosbol.jpeg') }}" alt="logo-ministerio"></td>
                 </tr>
@@ -60,9 +64,9 @@
         <h2>2. Datos del solicitante</h2>
         <table>
             <tbody>
-                <tr><th>Nombre o razón social</th><td>{{ $orden->solicitante->persona->nombre}} {{ $orden->solicitante->persona?->apellido }}</td><th>NIT / CI</th><td>{{ $orden->solicitante->persona->carnet }}</td></tr>
-                <tr><th>Teléfono</th><td>{{ $orden->solicitante->persona?->telefono }}</td><th>Correo</th><td>{{ $orden->solicitante->persona?->correo }}</td></tr>
-                <tr><th>Dirección</th><td colspan="3">{{ $orden->solicitante->persona?->direccion }}</td></tr>
+            <tr><th>Nombre o razón social</th><td>{{ $orden->solicitante?->persona?->nombre}} {{ $orden->solicitante?->persona?->apellido }}</td><th>NIT / CI</th><td>{{ $orden->solicitante?->persona?->carnet }}</td></tr>
+                <tr><th>Teléfono</th><td>{{ $orden->solicitante?->persona?->telefono }}</td><th>Correo</th><td>{{ $orden->solicitante?->persona?->correo }}</td></tr>
+                <tr><th>Dirección</th><td colspan="3">{{ $orden->solicitante?->persona?->direccion }}</td></tr>
                 {{-- <tr><th>Razón social</th><td>{{ $orden->razon_social }}</td><th>NIT</th><td>{{ $orden->nit }}</td></tr>
                 <tr><th>Dirección de facturación</th><td>{{ $orden->direccion_facturacion }}</td><th>Correo de facturación</th><td>{{ $orden->correo_facturacion }}</td></tr> --}}
             </tbody>
@@ -107,7 +111,7 @@
 
     @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
         <section>
-            <h2>Detalle de pago</h2>
+            {{-- <h2>Detalle de pago</h2> --}}
             <table>
                 <tr>
                     <th>Voucher de pago</th>
@@ -120,15 +124,15 @@
         </section>
 
         <section>
-            <h2>Entrega</h2>
+            {{-- <h2>Entrega</h2> --}}
             <table>
                 <tr>
-                    <th>Fecha de entrega estimada</th>
+                    <th>Fecha de entrega</th>
                     <td>{{ date('d/m/Y', strtotime($orden->fecha_entrega_tentativa)) }}</td>
-                    @if ($orden->estado->codigo == 'COMPLETADA')    
+                    {{-- @if ($orden->estado->codigo == 'COMPLETADA')    
                         <th>Fecha de entrega</th>
                         <td>{{ $orden->fecha_entrega->format('d/m/Y') }}</td>
-                    @endif
+                    @endif --}}
                 </tr>
             </table>
         </section>
@@ -149,7 +153,7 @@
             </tr>
             <tr>
                 <td class="signature" >
-                    Firma del solicitante<br><strong>Nombre:</strong> {{ $orden->solicitante->persona->nombre }} {{ $orden->solicitante->persona?->apellido }}<br><strong>C.I.:</strong> {{ $orden->solicitante->persona->carnet }}
+                    Firma del solicitante<br><strong>Nombre:</strong> {{ $orden->solicitante?->persona?->nombre }} {{ $orden->solicitante->persona?->apellido }}<br><strong>C.I.:</strong> {{ $orden->solicitante->persona?->carnet }}
                 </td>
                 @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
                     
@@ -164,8 +168,8 @@
 
     <section>
         <div class="verification">
-            <img src="{{ $qrVerificacion }}" width="100" height="100" alt="QR de verificación">
-            <div>Escanee para validar la autenticidad del pedido</div>
+            <img src="{{ $qrVerificacion }}" width="50" height="50" alt="QR de verificación">
+            <p>Escanee para validar la autenticidad del pedido</p>
             {{-- <div>{{ $urlVerificacion }}</div> --}}
         </div>
     </section>
