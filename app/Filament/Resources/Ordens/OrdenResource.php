@@ -374,7 +374,7 @@ class OrdenResource extends Resource
         $query = parent::getEloquentQuery();
         $usuario = Filament::auth()->user();
 
-        if ($usuario instanceof User && $usuario->hasRole('cliente')) {
+        if ($usuario instanceof User && $usuario->hasRole(['cliente', 'cliente_ad'])) {
             $query->where('solicitante_user_id', $usuario->getKey());
         }
 

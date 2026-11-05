@@ -74,7 +74,7 @@ trait InteractsWithDashboardData
         $user ??= auth()->user();
 
         return $user instanceof User
-            && $user->hasRole('cliente')
+            && $user->hasRole(['cliente','cliente_ad'])
             && ! $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'encargado_almacen', 'responsable_inventario']);
     }
 
@@ -83,7 +83,7 @@ trait InteractsWithDashboardData
         $user = auth()->user();
 
         return $user instanceof User
-            && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'cliente']);
+            && $user->hasAnyRole(['super_admin', 'administrador', 'encargado_ventas', 'cliente','cliente_ad']);
     }
 
     protected function canSeeInventoryData(): bool
