@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link rel="icon" type="image/png" href="/images/favicon.ico">
-    <title>Pedido {{ $orden->numero }}</title>
+    <title>Pedido {{ $orden->codigo_orden }}</title>
     <style>
         /* @page { margin: 24mm 16mm; } */
         body { color: #111827; font: 11px DejaVu Sans, sans-serif; }
@@ -13,7 +13,7 @@
         th, td { border: 1px solid #9ca3af; padding: 6px; text-align: left; }
         th { background: #f3f4f6; }
         .number { text-align: right; white-space: nowrap; }
-        .declaration { line-height: 1.6}
+        .declaration { line-height: 1.6; text-align: justify;}
         .signatures { margin-top: 20px; width: 100%; border: 1px }
         .signature-field {height: 30px;}
         /* .signature { border-top: 1px solid #111827; padding: 8px; text-align: center; width: 45%; } */
@@ -56,8 +56,23 @@
         <h2>1. Datos del pedido</h2>
         <table>
             <tbody>
-                <tr><th>Código de pedido</th><td>{{ $orden->codigo_orden }}</td><th>Fecha de registro</th><td>{{ $orden->fecha_registro?->format('d/m/Y') }}</td></tr>
-                <tr><th>Almacén</th><td colspan="3">{{ $orden->almacen?->nombre }}</td></tr>
+               @if ($orden->estado->codigo == 'COMPLETADA')
+                   <tr>
+                        <th>Número de acta</th>
+                        <td>{{ $orden->correlativo_entrega }}</td>
+                        <th>Código de pedido</th>
+                        <td>{{ $orden->codigo_orden }}</td>
+                   </tr>
+                    <tr>
+                        <th>Almacén</th>
+                        <td>{{ $orden->almacen?->nombre }}</td>
+                        <th>Fecha de registro</th>
+                        <td>{{ $orden->fecha_registro?->format('d/m/Y') }}</td>
+                    </tr>
+               @else
+                    <tr><th>Código de pedido</th><td>{{ $orden->codigo_orden }}</td><th>Fecha de registro</th><td>{{ $orden->fecha_registro?->format('d/m/Y') }}</td></tr>
+                    <tr><th>Almacén</th><td colspan="3">{{ $orden->almacen?->nombre }}</td></tr>
+               @endif
             </tbody>
         </table>
     
@@ -77,8 +92,18 @@
         <h2>3. Datos de facturación</h2>
         <table>
             <tbody>
-                <tr><th>Razón social</th><td>{{ $orden->razon_social }}</td><th>NIT</th><td>{{ $orden->nit }}</td></tr>
-                <tr><th>Dirección de facturación</th><td>{{ $orden->direccion_facturacion }}</td><th>Correo de facturación</th><td>{{ $orden->correo_facturacion }}</td></tr>
+                <tr>
+                    <th>Razón social</th>
+                    <td>{{ $orden->razon_social }}</td>
+                    <th>NIT</th>
+                    <td>{{ $orden->nit }}</td>
+                </tr>
+                <tr>
+                    <th>Dirección de facturación</th>
+                    <td>{{ $orden->direccion_facturacion }}</td>
+                    <th>Correo para facturación</th>
+                    <td>{{ $orden->correo_facturacion }}</td>
+                </tr>
             </tbody>
         </table>
     </section>
@@ -109,30 +134,24 @@
         </table>
     </section>
 
-    @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
+    @if ($orden->estado->codigo == 'COMPLETADA')
         <section>
             {{-- <h2>Detalle de pago</h2> --}}
             <table>
                 <tr>
-                    <th>Voucher de pago</th>
+                    <th>Número o código de pago</th>
                     <td>{{ $orden->numero_boleta_pago }}</td>
 
                     <th>Monto total</th>
                     <td>Bs {{number_format((float) $orden->precio_total, 2, ',','.')}}</td>
                 </tr>
-            </table>
-        </section>
 
-        <section>
-            {{-- <h2>Entrega</h2> --}}
-            <table>
                 <tr>
                     <th>Fecha de entrega</th>
                     <td>{{ date('d/m/Y', strtotime($orden->fecha_entrega_tentativa)) }}</td>
-                    {{-- @if ($orden->estado->codigo == 'COMPLETADA')    
-                        <th>Fecha de entrega</th>
-                        <td>{{ $orden->fecha_entrega->format('d/m/Y') }}</td>
-                    @endif --}}
+
+                    <th>Número de factura</th>
+                    <td>{{ $orden->numero_factura_arq }}</td>
                 </tr>
             </table>
         </section>
@@ -141,13 +160,13 @@
     <section>
         <h2>5. Declaración jurada del solicitante</h2>
         <div class="declaration">
-            Declaro que la harina adquirida será destinada exclusivamente a la elaboración de pan por los panificadores asociados, que no será revendida ni desviada a otros fines, y que acepto la verificación de su destino por INSUMOS BOLIVIA y EMAPA. La falsedad de esta declaración habilita la suspensión de futuras ventas y las acciones legales que correspondan.
+            Declaro que la harina adquirida será destinada exclusivamente a la elaboración de pan por panificadores asociados, que no será revendida ni desviada para otros fines, y acepto la verificación de su destino por instancias correspondientes. La falsedad de esta declaración habilita la suspensión de futuras ventas y las acciones legales que correspondan.
         </div>
     
         <table class="signatures" >
             <tr>
                 <td class="signature-field"></td>
-                @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
+                @if ($orden->estado->codigo == 'COMPLETADA')
                     <td class="signature-field"></td>
                 @endif
             </tr>
@@ -155,7 +174,7 @@
                 <td class="signature" >
                     Firma del solicitante<br><strong>Nombre:</strong> {{ $orden->solicitante?->persona?->nombre }} {{ $orden->solicitante->persona?->apellido }}<br><strong>C.I.:</strong> {{ $orden->solicitante->persona?->carnet }}
                 </td>
-                @if ($orden->estado->codigo == 'COMPLETADA' || $orden->estado->codigo == 'VERIFICADO')
+                @if ($orden->estado->codigo == 'COMPLETADA')
                     
                 <td class="signature" >
                     Firma del responsable de entrega<br><strong>Nombre:</strong>...................<br><strong>C.I.:</strong>...........................
@@ -168,8 +187,8 @@
 
     <section>
         <div class="verification">
-            <img src="{{ $qrVerificacion }}" width="50" height="50" alt="QR de verificación">
-            <p>Escanee para validar la autenticidad del pedido</p>
+            <img src="{{ $qrVerificacion }}" width="65" height="65" alt="QR de verificación">
+            <div>Escanee para validar la autenticidad del pedido</div>
             {{-- <div>{{ $urlVerificacion }}</div> --}}
         </div>
     </section>

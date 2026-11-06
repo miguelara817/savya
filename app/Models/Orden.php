@@ -34,6 +34,7 @@ use Illuminate\Support\Str;
     'fecha_entrega_tentativa',
     'fecha_entrega',
     'numero_factura_arq',
+    'correlativo_entrega',
 ])]
 class Orden extends Model
 {

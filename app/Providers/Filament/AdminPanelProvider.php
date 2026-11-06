@@ -7,6 +7,7 @@ use App\Filament\Auth\SessionTrackingLogin;
 use App\Filament\Pages\Dashboard;
 use App\Notifications\VerifyLoginEmail;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\FontProviders\GoogleFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -47,6 +48,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/02_SAVYA_horizontal_fondo_blanco.png'))
             ->darkModeBrandLogo(asset('images/04_SAVYA_horizontal_fondo_azul_oscuro.png'))
             ->brandLogoHeight('8rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->font('Inter')
             ->colors([
                 'primary' => Color::hex('#082d44'),
                 'gray' => Color::Slate,

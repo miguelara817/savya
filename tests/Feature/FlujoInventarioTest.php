@@ -500,6 +500,7 @@ test('el encargado de almacen puede entregar una orden verificada y liberar sus 
     $entrega = Entrega::query()->firstOrFail();
 
     expect($orden->fresh()->estadoCodigo())->toBe(OrdenEstadoCodigo::Completada->value)
+        ->and($orden->fresh()->correlativo_entrega)->toBe('01/'.now()->year)
         ->and($saldo->fresh()->cantidad_actual)->toBe(5)
         ->and($saldo->fresh()->cantidad_reservada)->toBe(0)
         ->and($entrega->estado)->toBe(Entrega::ESTADO_CONFIRMADA)

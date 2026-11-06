@@ -14,6 +14,7 @@ use App\Support\DocumentoNumero;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class EntregaService
 {
@@ -25,9 +26,9 @@ class EntregaService
     /**
      * Completes dispatch and delivery for a verified order in one atomic operation.
      */
-    public function confirmarOrdenVerificada(Orden $orden, User $usuario): void
+    public function confirmarOrdenVerificada(Orden $orden, User $usuario, string $numeroFactura): void
     {
-        DB::transaction(function () use ($orden, $usuario): void {
+        DB::transaction(function () use ($orden, $usuario, $numeroFactura): void {
             $orden = Orden::query()
                 ->whereKey($orden->getKey())
                 ->lockForUpdate()
@@ -39,6 +40,13 @@ class EntregaService
                 throw new DomainException('Solo se puede confirmar como entregada una orden con el pago verificado.');
             }
 
+            
+            if (! $numeroFactura) {
+                throw ValidationException::withMessages([
+                    'numerofactura' => 'El número de factura es requerido.',
+                ]);
+            }
+
             $salida = $this->salidaAlmacenService->prepararDesdeOrden($orden, $usuario);
             $this->salidaAlmacenService->confirmar($salida, $usuario);
 
@@ -46,6 +54,11 @@ class EntregaService
             $this->confirmar($entrega, $usuario);
 
             $fechaLiberacion = $entrega->fresh()->fecha_entrega;
+            $orden->forceFill([
+                'correlativo_entrega' => $this->siguienteCorrelativoEntrega((int) $fechaLiberacion->year),
+                'numero_factura_arq' => trim($numeroFactura)
+            ])->save();
+
             $lineasOrden = $orden->productos()->pluck('orden_producto_id');
             $reservasLiberadas = ReservaStock::query()
                 ->whereIn('orden_producto_id', $lineasOrden)
@@ -58,6 +71,24 @@ class EntregaService
                 throw new DomainException('No fue posible liberar las reservas de stock para toda la orden.');
             }
         }, 3);
+    }
+
+    private function siguienteCorrelativoEntrega(int $year): string
+    {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::select('SELECT pg_advisory_xact_lock(?, ?)', [714205, $year]);
+        }
+
+        $correlativos = Orden::query()
+            ->whereNotNull('correlativo_entrega')
+            ->where('correlativo_entrega', 'like', '%/'.$year)
+            ->pluck('correlativo_entrega');
+
+        $siguienteNumero = $correlativos
+            ->map(fn (string $correlativo): int => (int) explode('/', $correlativo, 2)[0])
+            ->max() + 1;
+
+        return sprintf('%02d/%d', $siguienteNumero, $year);
     }
 
     /**
