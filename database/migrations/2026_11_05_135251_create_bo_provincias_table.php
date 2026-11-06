@@ -13,11 +13,19 @@ return new class extends Migration
     {
         Schema::create('bo_provincias', function (Blueprint $table) {
             $table->id('bo_provincias_id');
-            $table->string('codigo', 10);
-            $table->string('nombre', 10);
-            $table->string('latitud', 100);
-            $table->string('longitud', 100);
+            $table->string('nombre', 50);
+            $table->decimal('latitud', 10, 8)->nullable();
+            $table->decimal('longitud', 11, 8)->nullable();
+
+            $table->unsignedBigInteger('bo_departamentos_id')->nullable();
+
+            $table->foreign('bo_departamentos_id')
+                ->references('bo_departamentos_id')
+                ->on('bo_departamentos')
+                ->nullOnDelete();
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

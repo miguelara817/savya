@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('bo_departamentos', function (Blueprint $table) {
             $table->id('bo_departamentos_id');
-            $table->string('codigo', 10);
-            $table->string('nombre', 10);
-            $table->string('latitud', 100,);
-            $table->string('longitud', 100);
+            $table->string('nombre', 50);
+            $table->decimal('latitud', 10, 8)->nullable();
+            $table->decimal('longitud', 11, 8)->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

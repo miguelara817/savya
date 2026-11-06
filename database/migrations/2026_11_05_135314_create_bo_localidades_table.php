@@ -12,8 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bo_localidades', function (Blueprint $table) {
-            $table->id();
+            $table->id('bo_localidades_id');
+            $table->string('nombre', 100);
+            $table->decimal('latitud', 10, 8)->nullable();
+            $table->decimal('longitud', 11, 8)->nullable();
+
+            $table->unsignedBigInteger('bo_municipios_id')->nullable();
+
+            $table->foreign('bo_municipios_id')
+                ->references('bo_municipios_id')
+                ->on('bo_municipios')
+                ->nullOnDelete();
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
