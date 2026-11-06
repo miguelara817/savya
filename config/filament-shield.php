@@ -257,6 +257,8 @@ return [
         'Aprobar:Orden',
         'Rechazar:Orden',
         'Cancelar:Orden',
+        'VerificarPago:Orden',
+        'Entregar:Orden',
         'Confirmar:SalidaAlmacen',
         'Confirmar:Entrega',
         'Publicar:PublicacionExistencia',
