@@ -399,13 +399,18 @@ class OrdenResource extends Resource
                 //     ->sortable(),
                 TextColumn::make('codigo_orden')
                     ->label('Código')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('solicitante.name')
                     ->label('Solicitante')
                     ->searchable(),
                 // TextColumn::make('persona.nombre')
                 //     ->label('Cliente')
                 //     ->searchable(),
+                TextColumn::make('correlativo_entrega')
+                    ->label('Número de acta'),
+                TextColumn::make('numero_factura_arq')
+                    ->label('Número de factura'),
                 TextColumn::make('fecha_entrega_tentativa')
                     ->label('Fecha de entrega tentativa')
                     ->date('d/m/Y')
