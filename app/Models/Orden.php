@@ -33,6 +33,7 @@ use Illuminate\Support\Str;
     'motivo_rechazo',
     'fecha_entrega_tentativa',
     'fecha_entrega',
+    'numero_factura_arq',
 ])]
 class Orden extends Model
 {

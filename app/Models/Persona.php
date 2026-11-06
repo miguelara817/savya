@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'direccion',
     'registro_emapa',
     'is_active',
+    'bo_departamentos_id',
+    'bo_provincias_id',
+    'bo_municipios_id',
+    'bo_localidades_id',
 ])]
 class Persona extends Model
 {
@@ -79,5 +83,37 @@ class Persona extends Model
     public function entregasRecibidas(): HasMany
     {
         return $this->hasMany(Entrega::class, 'receptor_persona_id');
+    }
+
+    /**
+     * @return BelongsTo<BoDepartamento, $this>
+     */
+    public function boDepartamento(): BelongsTo
+    {
+        return $this->belongsTo(BoDepartamento::class, 'bo_departamentos_id');
+    }
+
+    /**
+     * @return BelongsTo<BoProvincia, $this>
+     */
+    public function boProvincia(): BelongsTo
+    {
+        return $this->belongsTo(BoProvincia::class, 'bo_provincias_id');
+    }
+
+    /**
+     * @return BelongsTo<BoMunicipio, $this>
+     */
+    public function boMunicipio(): BelongsTo
+    {
+        return $this->belongsTo(BoMunicipio::class, 'bo_municipios_id');
+    }
+
+    /**
+     * @return BelongsTo<BoLocalidad, $this>
+     */
+    public function boLocalidad(): BelongsTo
+    {
+        return $this->belongsTo(BoLocalidad::class, 'bo_localidades_id');
     }
 }

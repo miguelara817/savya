@@ -5,6 +5,10 @@ namespace App\Filament\Resources\Personas;
 use App\Filament\Resources\Personas\Pages\CreatePersona;
 use App\Filament\Resources\Personas\Pages\EditPersona;
 use App\Filament\Resources\Personas\Pages\ListPersonas;
+use App\Models\BoDepartamento;
+use App\Models\BoLocalidad;
+use App\Models\BoMunicipio;
+use App\Models\BoProvincia;
 use App\Models\Persona;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -84,6 +88,47 @@ class PersonaResource extends Resource
                 TextInput::make('direccion')
                     ->label('Dirección')
                     ->maxLength(250),
+                Select::make('bo_departamentos_id')
+                    ->label('Departamento')
+                    ->options(fn () => BoDepartamento::query()->orderBy('nombre')->pluck('nombre', 'bo_departamentos_id'))
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(function (callable $set): void {
+                        $set('bo_provincias_id', null);
+                        $set('bo_municipios_id', null);
+                        $set('bo_localidades_id', null);
+                    }),
+                Select::make('bo_provincias_id')
+                    ->label('Provincia')
+                    ->options(fn (Get $get) => BoProvincia::query()
+                        ->where('bo_departamentos_id', $get('bo_departamentos_id'))
+                        ->orderBy('nombre')
+                        ->pluck('nombre', 'bo_provincias_id'))
+                    ->searchable()
+                    ->live()
+                    ->disabled(fn (Get $get): bool => blank($get('bo_departamentos_id')))
+                    ->afterStateUpdated(function (callable $set): void {
+                        $set('bo_municipios_id', null);
+                        $set('bo_localidades_id', null);
+                    }),
+                Select::make('bo_municipios_id')
+                    ->label('Municipio')
+                    ->options(fn (Get $get) => BoMunicipio::query()
+                        ->where('bo_provincias_id', $get('bo_provincias_id'))
+                        ->orderBy('nombre')
+                        ->pluck('nombre', 'bo_municipios_id'))
+                    ->searchable()
+                    ->live()
+                    ->disabled(fn (Get $get): bool => blank($get('bo_provincias_id')))
+                    ->afterStateUpdated(fn (callable $set) => $set('bo_localidades_id', null)),
+                Select::make('bo_localidades_id')
+                    ->label('Localidad')
+                    ->options(fn (Get $get) => BoLocalidad::query()
+                        ->where('bo_municipios_id', $get('bo_municipios_id'))
+                        ->orderBy('nombre')
+                        ->pluck('nombre', 'bo_localidades_id'))
+                    ->searchable()
+                    ->disabled(fn (Get $get): bool => blank($get('bo_municipios_id'))),
                 TextInput::make('registro_emapa')
                     ->label('Registro EMAPA')
                     ->maxLength(100),
@@ -123,6 +168,8 @@ class PersonaResource extends Resource
                 TextColumn::make('correo')
                     ->label('Correo')
                     ->searchable(),
+                TextColumn::make('boDepartamento.nombre')
+                    ->label('Departamento'),
                 TextColumn::make('direccion')
                     ->label('Dirección')
                     ->searchable()
@@ -134,21 +181,21 @@ class PersonaResource extends Resource
                     ->label('Activo')
                     ->boolean()
                     ->columnSpanFull(),
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->label('Eliminado')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('created_at')
+                //     ->label('Creado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('updated_at')
+                //     ->label('Actualizado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('deleted_at')
+                //     ->label('Eliminado')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('persona_tipo_id')
