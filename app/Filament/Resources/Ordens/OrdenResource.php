@@ -50,6 +50,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -408,10 +409,12 @@ class OrdenResource extends Resource
                 TextColumn::make('fecha_entrega_tentativa')
                     ->label('Fecha de entrega tentativa')
                     ->date('d/m/Y')
-                    ->placeholder('Todavia no tiene una fecha tentativa de entrega'),
+                    ->placeholder('Todavia no tiene una fecha tentativa de entrega')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('razon_social')
                     ->label('Razón social')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('nit')
                     ->label('NIT')
                     ->searchable()
@@ -425,7 +428,8 @@ class OrdenResource extends Resource
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('almacen.nombre')
-                    ->label('Almacén'),
+                    ->label('Almacén')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('estado.nombre')
                     ->label('Estado')
                     ->badge()
@@ -444,15 +448,17 @@ class OrdenResource extends Resource
                     ->counts('productos')
                     ->numeric(),
                 TextColumn::make('cantidad_total')
-                    ->label('Cantidad solcitada')
-                    ->numeric(),
+                    ->label('Cantidad solicitada')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('precio_total')
                     ->label('Precio total [Bs]')
                     ->formatStateUsing(fn ($state) => 'Bs '.number_format((float) $state, 2, ',', '.')),
                 TextColumn::make('fecha_registro')
                     ->label('Fecha de registro')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('numero_boleta_pago')
                     ->label('Boleta de pago')
                     ->toggleable(),
@@ -532,7 +538,7 @@ class OrdenResource extends Resource
                             &&
                             (
                                 $record->estaEnEstado(OrdenEstadoCodigo::PendienteAprobacion) ||
-                                $record->estaEnEstado(OrdenEstadoCodigo::Verificado) ||
+                                // $record->estaEnEstado(OrdenEstadoCodigo::Verificado) ||
                                 $record->estaEnEstado(OrdenEstadoCodigo::Completada)
                             )
                         )
@@ -887,6 +893,28 @@ class OrdenResource extends Resource
                                 ->send();
                         }),
                     Action::make('entregado')
+                        // ->label('Entregado')
+                        // ->icon(Heroicon::OutlinedCheckCircle)
+                        // ->color('success')
+                        // ->requiresConfirmation()
+                        // ->modalHeading('Confirmar pedido entregado')
+                        // ->modalDescription('Se confirmará el despacho y la entrega completa, se descontará el stock físico y se marcarán como liberadas las reservas con la fecha de entrega.')
+                        // ->authorize('entregar')
+                        // ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Verificado))
+                        // ->action(function (Orden $record): void {
+                        //     try {
+                        //         app(EntregaService::class)->confirmarOrdenVerificada($record, self::usuarioActual());
+                        //     } catch (DomainException $exception) {
+                        //         self::notificarError($exception);
+
+                        //         return;
+                        //     }
+
+                        //     Notification::make()
+                        //         ->title('Pedido marcado como entregada')
+                        //         ->success()
+                        //         ->send();
+                        // }),
                         ->label('Entregado')
                         ->icon(Heroicon::OutlinedCheckCircle)
                         ->color('success')
@@ -895,17 +923,24 @@ class OrdenResource extends Resource
                         ->modalDescription('Se confirmará el despacho y la entrega completa, se descontará el stock físico y se marcarán como liberadas las reservas con la fecha de entrega.')
                         ->authorize('entregar')
                         ->visible(fn (Orden $record): bool => $record->estaEnEstado(OrdenEstadoCodigo::Verificado))
-                        ->action(function (Orden $record): void {
+                        ->schema([
+                            TextInput::make('numero_factura_arq')
+                                ->label('Número de factura')
+                                ->required(),
+                        ])
+                        ->action(function (Orden $record, array $data): void {
                             try {
-                                app(EntregaService::class)->confirmarOrdenVerificada($record, self::usuarioActual());
-                            } catch (DomainException $exception) {
+                                app(EntregaService::class)->confirmarOrdenVerificada(
+                                    $record,
+                                    self::usuarioActual(),
+                                    $data['numero_factura_arq']
+                                );
+                            } catch(DomainException $exception) {
                                 self::notificarError($exception);
-
                                 return;
                             }
-
                             Notification::make()
-                                ->title('Pedido marcado como entregada')
+                                ->title('Pedido marcado como entregado')
                                 ->success()
                                 ->send();
                         }),
@@ -935,6 +970,7 @@ class OrdenResource extends Resource
                         }),
                 ]),
             ])
+            // , position: RecordActionsPosition::BeforeColumns
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
